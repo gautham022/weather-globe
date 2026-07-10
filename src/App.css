@@ -1,0 +1,91 @@
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background-color: #1e1e2f;
+  color: white;
+}
+
+.app {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 40px 20px;
+  text-align: center;
+}
+
+.search-bar {
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.search-bar input {
+  padding: 8px 12px;
+  border-radius: 6px;
+  border: none;
+  font-size: 16px;
+  flex: 1;
+}
+
+.search-bar button {
+  padding: 8px 16px;
+  border-radius: 6px;
+  border: none;
+  background-color: #4f9dff;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.search-bar button:hover {
+  background-color: #3a86e0;
+}
+
+.weather-card {
+  background-color: #2a2a40;
+  padding: 20px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.error {
+  color: #ff6b6b;
+  font-weight: bold;
+}
+
+.recent-searches ul {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+
+.recent-searches button {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid #4f9dff;
+  background-color: transparent;
+  color: #4f9dff;
+  cursor: pointer;
+}
+
+.recent-searches button:hover {
+  background-color: #4f9dff;
+  color: white;
+}
+.clear-btn {
+  margin-top: 12px;
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: 1px solid #ff6b6b;
+  background-color: transparent;
+  color: #ff6b6b;
+  cursor: pointer;
+}
+
+.clear-btn:hover {
+  background-color: #ff6b6b;
+  color: white;
+}
