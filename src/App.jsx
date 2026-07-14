@@ -88,6 +88,8 @@ function App() {
   const [popupVisible, setPopupVisible] = useState(false)
   const [recentSearches, setRecentSearches] = useState([])
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [placeSuggestions, setPlaceSuggestions] = useState([])
+  const [newsArticles, setNewsArticles] = useState([])
 
   const markerRef = useRef(null)
   const targetPositionRef = useRef(null)
@@ -108,7 +110,7 @@ function App() {
 
     const controls = new OrbitControls(camera, renderer.domElement)
     controls.enableDamping = true
-    controls.dampingFactor = 0.05
+    controls.dampingFactor = 0.15
     controls.minDistance = 1.5
     controls.maxDistance = 6
 
@@ -198,6 +200,33 @@ function App() {
     }
   }, [])
 
+  useEffect(() => {
+    if (!city.trim()) {
+      setPlaceSuggestions([])
+      return
+    }
+
+    const timeoutId = setTimeout(() => {
+      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city)}&limit=5`)
+        .then((response) => response.json())
+        .then((data) => {
+          setPlaceSuggestions(data)
+        })
+        .catch(() => {
+          setPlaceSuggestions([])
+        })
+    }, 400)
+
+    return () => clearTimeout(timeoutId)
+  }, [city])
+
+  useEffect(() => {
+    fetch('http://localhost/news')
+      .then((response) => response.json())
+      .then((data) => setNewsArticles(data.articles))
+      .catch(() => setNewsArticles([]))
+  }, [])
+
   function goToLocation(lat, lon) {
     const surfacePoint = latLonToVector3(lat, lon, 1)
     markerRef.current.position.copy(surfacePoint).multiplyScalar(1.01)
@@ -243,10 +272,6 @@ function App() {
     fetchWeatherForCity(city)
   }
 
-  const suggestions = city.trim()
-    ? recentSearches.filter((s) => s.toLowerCase().includes(city.toLowerCase()))
-    : []
-
   return (
     <div className="app-container">
       <canvas ref={canvasRef} className="globe-canvas" />
@@ -275,19 +300,20 @@ function App() {
           </button>
         </div>
 
-        {showSuggestions && suggestions.length > 0 && (
+        {showSuggestions && placeSuggestions.length > 0 && (
           <div className="suggestions-dropdown">
-            {suggestions.map((s, i) => (
+            {placeSuggestions.map((place) => (
               <div
-                key={i}
+                key={place.place_id}
                 className="suggestion-item"
                 onMouseDown={() => {
-                  setCity(s)
-                  fetchWeatherForCity(s)
+                  const shortName = place.display_name.split(',')[0]
+                  setCity(shortName)
+                  fetchWeatherForCity(shortName)
                 }}
               >
                 <span className="pin-icon">📍</span>
-                <span className="suggestion-text">{s}</span>
+                <span className="suggestion-text">{place.display_name}</span>
               </div>
             ))}
           </div>
@@ -295,7 +321,17 @@ function App() {
       </div>
 
       {(loading || error) && (
-        <div className="status-popup">
+        <div
+          className="status-popup"
+          style={
+            canvasRef.current
+              ? {
+                left: canvasRef.current.getBoundingClientRect().left + canvasRef.current.offsetWidth / 2,
+                top: canvasRef.current.getBoundingClientRect().top + canvasRef.current.offsetHeight / 2,
+              }
+              : {}
+          }
+        >
           {loading && <p>Loading...</p>}
           {error && <p className="error-text">{error}</p>}
         </div>
@@ -316,7 +352,27 @@ function App() {
           <p>Wind: {weather.wind_speed} m/s</p>
         </div>
       )}
-    </div>
+
+      {newsArticles.length > 0 && (
+        <div className="news-panel">
+          <h3>World Weather News</h3>
+          <div className="news-list">
+            {newsArticles.map((article, i) => (
+
+              key = { i }
+                href = { article.url }
+                target = "_blank"
+                rel = "noopener noreferrer"
+                className = "news-item"
+                <p className="news-title">{article.title}</p>
+                <p className="news-source">{article.source}</p>
+              </a>
+            ))}
+        </div>
+        </div>s
+      )
+}
+    </div >
   )
 }
 
