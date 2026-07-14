@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
+import { ShootingStars } from '@/components/ui/shooting-stars'
 import earthTexture from './textures/earth.jpg'
 import './App.css'
 
@@ -105,7 +106,8 @@ function App() {
     )
     camera.position.z = 3
 
-    const renderer = new THREE.WebGLRenderer({ canvas: canvasRef.current })
+    const renderer = new THREE.WebGLRenderer({ canvas: canvasRef.current, alpha: true })
+    renderer.setClearColor(0x000000, 0)
     renderer.setSize(window.innerWidth, window.innerHeight)
 
     const controls = new OrbitControls(camera, renderer.domElement)
@@ -274,6 +276,38 @@ function App() {
 
   return (
     <div className="app-container">
+      <div className="stars-background">
+        <div className="stars-glow" />
+        <div className="stars-field" />
+      </div>
+
+      <div className="shooting-stars-layer">
+        <ShootingStars
+          starColor="#9E00FF"
+          trailColor="#2EB9DF"
+          minSpeed={15}
+          maxSpeed={35}
+          minDelay={1000}
+          maxDelay={3000}
+        />
+        <ShootingStars
+          starColor="#FF0099"
+          trailColor="#FFB800"
+          minSpeed={10}
+          maxSpeed={25}
+          minDelay={2000}
+          maxDelay={4000}
+        />
+        <ShootingStars
+          starColor="#00FF9E"
+          trailColor="#00B8FF"
+          minSpeed={20}
+          maxSpeed={40}
+          minDelay={1500}
+          maxDelay={3500}
+        />
+      </div>
+
       <canvas ref={canvasRef} className="globe-canvas" />
 
       <div className="search-wrapper">
@@ -358,21 +392,21 @@ function App() {
           <h3>World Weather News</h3>
           <div className="news-list">
             {newsArticles.map((article, i) => (
-
-              key = { i }
-                href = { article.url }
-                target = "_blank"
-                rel = "noopener noreferrer"
-                className = "news-item"
+              <a
+                key={i}
+                href={article.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="news-item"
+              >
                 <p className="news-title">{article.title}</p>
                 <p className="news-source">{article.source}</p>
               </a>
             ))}
+          </div>
         </div>
-        </div>s
-      )
-}
-    </div >
+      )}
+    </div>
   )
 }
 

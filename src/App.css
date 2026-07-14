@@ -4,14 +4,69 @@ body {
   background-color: #0a0a12;
 }
 
+#root {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border: none;
+  min-height: 100vh;
+  text-align: initial;
+}
+
 .app-container {
   position: relative;
   width: 100vw;
   height: 100vh;
   overflow: hidden;
+  background: #000;
+}
+
+.stars-background {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.stars-glow {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(ellipse at center, rgba(255, 255, 255, 0.15) 0%, rgba(0, 0, 0, 0) 80%);
+}
+
+.stars-field {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(2px 2px at 20px 30px, #eee, rgba(0, 0, 0, 0)),
+    radial-gradient(2px 2px at 40px 70px, #fff, rgba(0, 0, 0, 0)),
+    radial-gradient(2px 2px at 50px 160px, #ddd, rgba(0, 0, 0, 0)),
+    radial-gradient(2px 2px at 90px 40px, #fff, rgba(0, 0, 0, 0)),
+    radial-gradient(2px 2px at 130px 80px, #fff, rgba(0, 0, 0, 0)),
+    radial-gradient(2px 2px at 160px 120px, #ddd, rgba(0, 0, 0, 0));
+  background-repeat: repeat;
+  background-size: 200px 200px;
+  animation: twinkle 5s ease-in-out infinite;
+  opacity: 0.5;
+}
+
+@keyframes twinkle {
+  0% { opacity: 0.5; }
+  50% { opacity: 0.8; }
+  100% { opacity: 0.5; }
+}
+
+.shooting-stars-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
 }
 
 .globe-canvas {
+  position: relative;
+  z-index: 1;
   width: 100%;
   height: 100%;
   display: block;
@@ -22,7 +77,7 @@ body {
   top: 20px;
   left: 20px;
   width: 280px;
-  z-index: 10;
+  z-index: 20;
 }
 
 .search-bar {
@@ -90,7 +145,10 @@ body {
 
 .status-popup {
   position: absolute;
+  left: 50%;
+  top: 50%;
   transform: translate(-50%, -50%);
+  z-index: 20;
   background: rgba(20, 20, 30, 0.75);
   backdrop-filter: blur(12px);
   border: 1px solid rgba(255, 255, 255, 0.1);
@@ -107,25 +165,7 @@ body {
 
 .weather-popup {
   position: absolute;
-  background: rgba(20, 20, 30, 0.75);
-  backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  color: white;
-  padding: 16px 20px;
-  border-radius: 14px;
-  min-width: 220px;
-  pointer-events: none;
-}
-
-.weather-popup h2 {
-  margin: 0 0 8px;
-}
-
-.weather-popup p {
-  margin: 4px 0;
-}
-.weather-popup {
-  position: absolute;
+  z-index: 20;
   background: rgba(20, 20, 30, 0.75);
   backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -144,36 +184,50 @@ body {
   transform: translateY(0) scale(1);
 }
 
+.weather-popup h2 {
+  margin: 0 0 8px;
+}
+
+.weather-popup p {
+  margin: 4px 0;
+}
+
 .news-panel {
   position: absolute;
-  bottom: 20px;
-  left: 20px;
+  top: 20px;
   right: 20px;
-  max-width: 900px;
-  margin: 0 auto;
+  bottom: 20px;
+  width: 280px;
+  display: flex;
+  flex-direction: column;
   background: rgba(20, 20, 30, 0.75);
   backdrop-filter: blur(14px);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 14px;
   padding: 16px 20px;
   color: white;
+  z-index: 20;
 }
 
 .news-panel h3 {
   margin: 0 0 12px;
   font-size: 15px;
   opacity: 0.8;
+  flex-shrink: 0;
 }
 
 .news-list {
   display: flex;
-  gap: 14px;
-  overflow-x: auto;
-  padding-bottom: 4px;
+  flex-direction: column;
+  gap: 10px;
+  overflow-y: auto;
+  padding-right: 4px;
+  flex: 1;
+  min-height: 0;
 }
 
 .news-item {
-  flex: 0 0 220px;
+  flex-shrink: 0;
   text-decoration: none;
   color: white;
   background: rgba(255, 255, 255, 0.05);
