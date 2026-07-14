@@ -197,29 +197,29 @@ body {
   top: 20px;
   right: 20px;
   bottom: 20px;
-  width: 280px;
+  width: 300px;
   display: flex;
   flex-direction: column;
-  background: rgba(20, 20, 30, 0.75);
+  background: rgba(20, 20, 30, 0.85);
   backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 14px;
-  padding: 16px 20px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 18px;
+  padding: 18px 20px;
   color: white;
   z-index: 20;
 }
 
 .news-panel h3 {
-  margin: 0 0 12px;
+  margin: 0 0 14px;
   font-size: 15px;
-  opacity: 0.8;
+  opacity: 0.85;
   flex-shrink: 0;
 }
 
 .news-list {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
   overflow-y: auto;
   padding-right: 4px;
   flex: 1;

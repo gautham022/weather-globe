@@ -223,9 +223,9 @@ function App() {
   }, [city])
 
   useEffect(() => {
-    fetch('http://localhost/news')
+    fetch('https://gnews.io/api/v4/search?q=weather&lang=en&apikey=6a3d0c4ab9d0762b81d296985a2fdc5a')
       .then((response) => response.json())
-      .then((data) => setNewsArticles(data.articles))
+      .then((data) => setNewsArticles(data.articles || []))
       .catch(() => setNewsArticles([]))
   }, [])
 
@@ -387,11 +387,11 @@ function App() {
         </div>
       )}
 
-      {newsArticles.length > 0 && (
-        <div className="news-panel">
-          <h3>World Weather News</h3>
-          <div className="news-list">
-            {newsArticles.map((article, i) => (
+      <div className="news-panel">
+        <h3>World Weather News</h3>
+        <div className="news-list">
+          {newsArticles && newsArticles.length > 0 ? (
+            newsArticles.map((article, i) => (
               <a
                 key={i}
                 href={article.url}
@@ -400,12 +400,17 @@ function App() {
                 className="news-item"
               >
                 <p className="news-title">{article.title}</p>
-                <p className="news-source">{article.source}</p>
+                <p className="news-source">{article.source?.name || article.source}</p>
               </a>
-            ))}
-          </div>
+            ))
+          ) : (
+            <div className="news-item news-placeholder">
+              <p className="news-title">No weather news available right now.</p>
+              <p className="news-source">Try refreshing or check your API.</p>
+            </div>
+          )}
         </div>
-      )}
+      </div>
     </div>
   )
 }
