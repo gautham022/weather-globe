@@ -67,7 +67,8 @@ html, body {
 .globe-stage-wrapper {
   position: relative;
   width: 100%;
-  height: 100vh;
+  height: auto;
+  min-height: 60vh;
 }
 
 .globe-stage {
@@ -93,8 +94,14 @@ html, body {
 
 .globe-canvas {
   width: 100%;
-  height: 100%;
+  height: min(70vh, 720px);
   display: block;
+}
+
+@media (max-width: 980px){
+  .main-layout{ display: flex; flex-direction: column; }
+  .sidebar{ width: 100%; }
+  .globe-canvas{ height: 50vh }
 }
 
 .radar-layer {
@@ -473,21 +480,29 @@ html, body {
   letter-spacing: 0.3px;
 }
 
+.main-layout{
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(300px, 360px);
+  gap: 24px;
+  width: min(1280px, 100%);
+  margin: 0 auto;
+  padding: 0 20px;
+  align-items: start;
+}
+
+.sidebar{ width: 100%; }
+
 .news-panel {
-  position: fixed;
-  top: 20px;
-  right: 20px;
-  bottom: 20px;
-  width: 300px;
+  position: relative;
+  width: 100%;
   display: flex;
   flex-direction: column;
-  background: rgba(20, 20, 30, 0.85);
-  backdrop-filter: blur(14px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(18, 22, 34, 0.92);
+  backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 18px;
-  padding: 18px 20px;
+  padding: 20px;
   color: white;
-  z-index: 20;
 }
 
 .news-panel h3 {
@@ -501,10 +516,7 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  overflow-y: auto;
   padding-right: 4px;
-  flex: 1;
-  min-height: 0;
 }
 
 .news-item {

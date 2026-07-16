@@ -4,6 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { ShootingStars } from '@/components/ui/shooting-stars'
 import earthTexture from './textures/earth.jpg'
 import WeatherRadarView from './WeatherRadarView'
+import Footer from './components/ui/Footer'
 import WeatherForecastPanel from './WeatherForecastPanel'
 import './App.css'
 
@@ -359,6 +360,7 @@ function App() {
   const formattedDate = now.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
   const formattedTime = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
 
+
   return (
     <div className="app-container">
       <div className="stars-background">
@@ -393,18 +395,52 @@ function App() {
         />
       </div>
 
-      <div className="globe-stage-wrapper">
-        <div className={`globe-stage ${showRadar ? 'show-radar' : ''}`}>
-          <div className="globe-layer">
-            <canvas ref={canvasRef} className="globe-canvas" />
-          </div>
+      <div className="main-layout">
+        <div className="globe-stage-wrapper">
+          <div className={`globe-stage ${showRadar ? 'show-radar' : ''}`}>
+            <div className="globe-layer">
+              <canvas ref={canvasRef} className="globe-canvas" />
+            </div>
 
-          <div className="radar-layer">
-            {weather && (
-              <WeatherRadarView lat={weather.lat} lon={weather.lon} active={showRadar} />
-            )}
+            <div className="radar-layer">
+              {weather && (
+                <WeatherRadarView lat={weather.lat} lon={weather.lon} active={showRadar} />
+              )}
+            </div>
           </div>
         </div>
+
+        <aside className="sidebar">
+          <div className="news-panel">
+            <h3>World Weather News</h3>
+            <div className="news-list">
+              {newsLoading ? (
+                <div className="news-item news-placeholder">
+                  <p className="news-title">Loading news…</p>
+                  <p className="news-source">Updating once every {newsCacheHours} hours</p>
+                </div>
+              ) : newsArticles && newsArticles.length > 0 ? (
+                newsArticles.map((article, i) => (
+                  <a
+                    key={i}
+                    href={article.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="news-item"
+                  >
+                    <p className="news-title">{article.title}</p>
+                    <p className="news-source">{article.source?.name || article.source}</p>
+                  </a>
+                ))
+              ) : (
+                <div className="news-item news-placeholder">
+                  <p className="news-title">No weather news available right now.</p>
+                  <p className="news-source">Try refreshing or check your API.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </aside>
       </div>
 
       {weather && (
@@ -509,35 +545,7 @@ function App() {
         </div>
       )}
 
-      <div className="news-panel">
-        <h3>World Weather News</h3>
-        <div className="news-list">
-          {newsLoading ? (
-              <div className="news-item news-placeholder">
-                <p className="news-title">Loading news…</p>
-                <p className="news-source">Updating once every {newsCacheHours} hours</p>
-            </div>
-          ) : newsArticles && newsArticles.length > 0 ? (
-            newsArticles.map((article, i) => (
-              <a
-                key={i}
-                href={article.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="news-item"
-              >
-                <p className="news-title">{article.title}</p>
-                <p className="news-source">{article.source?.name || article.source}</p>
-              </a>
-            ))
-          ) : (
-            <div className="news-item news-placeholder">
-              <p className="news-title">No weather news available right now.</p>
-              <p className="news-source">Try refreshing or check your API.</p>
-            </div>
-          )}
-        </div>
-      </div>
+      <Footer />
     </div>
   )
 }

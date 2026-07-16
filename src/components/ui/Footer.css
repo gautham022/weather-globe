@@ -1,0 +1,144 @@
+/* Footer - glassmorphic premium design */
+:root{
+  --bg: rgba(6,10,18,0.6);
+  --glass: rgba(255,255,255,0.04);
+  --border: rgba(255,255,255,0.06);
+  --muted: #bfc9d9; /* light gray text */
+  --accent: #4A90FF;
+  --accent-2: rgba(74,144,255,0.14);
+}
+
+.wg-footer{
+  padding: 56px 20px 28px;
+  position: relative;
+  color: var(--muted);
+  animation: wg-fade 420ms ease-out both;
+  margin-top: 48px;
+}
+
+.wg-footer-inner{
+  width: min(1200px, 96%);
+  margin: 0 auto;
+  background: linear-gradient(180deg, rgba(10,14,22,0.48), rgba(6,8,12,0.36));
+  border-radius: 16px 16px 12px 12px;
+  padding: 28px;
+  box-shadow: 0 10px 40px rgba(6,10,20,0.6);
+  backdrop-filter: blur(8px) saturate(120%);
+  border: 1px solid var(--border);
+  position: relative;
+  overflow: hidden;
+}
+
+/* floating gradient */
+.wg-stars{
+  position: absolute;
+  inset: -10% -20%;
+  background: radial-gradient(800px 200px at 10% 10%, rgba(74,144,255,0.08), transparent 10%),
+              radial-gradient(400px 100px at 90% 80%, rgba(120,80,255,0.04), transparent 10%);
+  transform: translateZ(0);
+  pointer-events: none;
+}
+
+.wg-footer-grid{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+.card{
+  padding: 16px;
+  border-radius: 12px;
+  transition: transform 240ms ease, box-shadow 240ms ease;
+}
+
+.card:hover{ transform: translateY(-6px); box-shadow: 0 18px 40px rgba(20,30,60,0.55); }
+
+.wg-section-title{
+  font-size: 12px;
+  letter-spacing: 1px;
+  color: var(--muted);
+  margin: 0 0 10px;
+  position: relative;
+  display: inline-block;
+  padding-bottom: 6px;
+}
+
+.wg-section-title::after{
+  content: '';
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 2px;
+  width: 36px;
+  background: linear-gradient(90deg, var(--accent), rgba(74,144,255,0.6));
+  border-radius: 2px;
+  transform-origin: left center;
+  transform: scaleX(0);
+  transition: transform 320ms cubic-bezier(.2,.9,.3,1);
+}
+
+.card:hover .wg-section-title::after{ transform: scaleX(1); }
+
+.wg-title{
+  font-size: 18px;
+  font-weight: 600;
+  color: #e6eefc;
+  margin-bottom: 8px;
+}
+
+.wg-desc{ font-size: 13px; line-height: 1.45; color: var(--muted); margin: 0; }
+
+.wg-features-list{ list-style: none; padding: 0; margin: 8px 0 0; display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 8px; }
+.wg-features-list li{ margin: 0; }
+
+.wg-link{ color: var(--muted); text-decoration: none; padding: 6px 8px; border-radius: 8px; display: inline-block; transition: all 220ms ease; }
+.wg-link:hover{ color: #f6fbff; text-shadow: 0 6px 24px rgba(74,144,255,0.22); transform: translateY(-4px); }
+
+.feature-link{ background: linear-gradient(180deg, rgba(255,255,255,0.02), transparent); }
+
+.wg-tech-list{ display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+.tech-badge{ padding:6px 10px; font-size:12px; border-radius:999px; background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border: 1px solid rgba(255,255,255,0.03); color:var(--muted); transition: transform 200ms ease, box-shadow 200ms ease; }
+.tech-badge:hover{ transform: translateY(-4px) scale(1.02); box-shadow: 0 10px 26px rgba(74,144,255,0.06); color: #f6fbff }
+
+.wg-developer .dev-name{ font-weight:700; color:#e6eefc; margin-top:6px }
+.wg-developer .dev-role, .dev-college, .dev-intern{ font-size:12px; margin-top:6px; color:var(--muted); }
+.dev-desc{ font-size:13px; margin-top:10px; color:var(--muted) }
+.dev-socials{ display:flex; gap:10px; margin-top:12px }
+.dev-socials .social{ width:36px; height:36px; display:inline-flex; align-items:center; justify-content:center; border-radius:10px; color:var(--muted); background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.03); transition: transform 180ms ease, box-shadow 180ms ease, color 200ms ease; }
+.dev-socials .social:hover{ transform: translateY(-4px) scale(1.05); color: #fff; box-shadow: 0 12px 30px rgba(74,144,255,0.14); background: linear-gradient(90deg, rgba(74,144,255,0.08), rgba(0,0,0,0.02)); }
+
+.wg-status .status-grid{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
+.status-item{ background: linear-gradient(180deg, rgba(255,255,255,0.01), transparent); padding:10px; border-radius:10px; display:flex; justify-content:space-between; align-items:center; }
+.status-item strong{ color:#dfe9ff }
+
+.wg-coming .coming-list{ display:flex; flex-wrap:wrap; gap:8px; margin-top:8px }
+.coming-chip{ padding:6px 10px; border-radius:999px; background: rgba(74,144,255,0.06); color:#d8eaff; font-size:12px; border: 1px solid rgba(74,144,255,0.08); transition: transform 160ms ease }
+.coming-chip:hover{ transform: translateY(-4px) }
+
+.wg-divider{ height:1px; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent); margin: 18px 0; border-radius:2px; animation: divider-move 3.6s linear infinite }
+
+@keyframes divider-move{ 0%{background-position:0%} 100%{background-position:200%} }
+
+.wg-bottom-row{ display:flex; gap:12px; align-items:center; justify-content:space-between; font-size:13px; color:var(--muted); }
+.wg-bottom-left, .wg-bottom-center, .wg-bottom-right{ opacity:0.95 }
+
+/* Back to top */
+.wg-back-top{ position:fixed; right:18px; bottom:22px; z-index:1000; background: linear-gradient(180deg, var(--accent), #2d74e6); color: #ffffff; border: none; width:48px; height:48px; border-radius:12px; display:inline-grid; place-items:center; box-shadow: 0 12px 30px rgba(74,144,255,0.16); transform: translateY(18px) scale(0.98); opacity:0; transition: opacity 280ms ease, transform 300ms cubic-bezier(.2,.9,.3,1); }
+.wg-back-top.visible{ opacity:1; transform: translateY(0) scale(1) }
+.wg-back-top:hover{ transform: translateY(-4px) scale(1.03) }
+
+/* Animated fade-in */
+@keyframes wg-fade{ from{ opacity:0; transform: translateY(8px) } to{ opacity:1; transform: translateY(0) } }
+
+/* responsive */
+@media (max-width: 980px){
+  .wg-footer-grid{ grid-template-columns: repeat(2, 1fr); }
+  .wg-bottom-row{ flex-direction:column; gap:6px; align-items:center }
+}
+
+@media (max-width: 600px){
+  .wg-footer-inner{ padding:18px }
+  .wg-footer-grid{ grid-template-columns: 1fr; }
+  .wg-features-list{ grid-template-columns: repeat(1, minmax(0,1fr)); }
+  .wg-back-top{ right:12px; bottom:14px }
+}
