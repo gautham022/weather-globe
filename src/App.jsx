@@ -93,6 +93,7 @@ function App() {
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [placeSuggestions, setPlaceSuggestions] = useState([])
   const [newsArticles, setNewsArticles] = useState([])
+  const [newsLoading, setNewsLoading] = useState(false)
   const [now, setNow] = useState(new Date())
   const [showRadar, setShowRadar] = useState(false)
 
@@ -227,11 +228,77 @@ function App() {
     return () => clearTimeout(timeoutId)
   }, [city])
 
+  const NEWS_CACHE_KEY = 'weatherNewsCache_v1'
+  const NEWS_CACHE_TTL = 5 * 60 * 60 * 1000 // 5 hours (changeable)
+  const newsCacheHours = Math.max(1, Math.floor(NEWS_CACHE_TTL / (60 * 60 * 1000)))
+
+  const fallbackArticles = [
+    {
+      title: 'Global weather patterns show mixed signals',
+      url: '#',
+      source: { name: 'Fallback Source' },
+    },
+    {
+      title: 'Tips to stay cool during heatwaves',
+      url: '#',
+      source: { name: 'Fallback Source' },
+    },
+    {
+      title: 'How to read satellite weather maps',
+      url: '#',
+      source: { name: 'Fallback Source' },
+    },
+  ]
+
   useEffect(() => {
-    fetch('https://gnews.io/api/v4/search?q=weather&lang=en&apikey=6a3d0c4ab9d0762b81d296985a2fdc5a')
-      .then((response) => response.json())
-      .then((data) => setNewsArticles(data.articles || []))
-      .catch(() => setNewsArticles([]))
+    async function loadNews() {
+      setNewsLoading(true)
+
+      try {
+        const cachedRaw = localStorage.getItem(NEWS_CACHE_KEY)
+        if (cachedRaw) {
+          const cached = JSON.parse(cachedRaw)
+          if (cached?.ts && Date.now() - cached.ts < NEWS_CACHE_TTL && cached.articles?.length) {
+            setNewsArticles(cached.articles)
+            setNewsLoading(false)
+            return
+          }
+        }
+
+        const res = await fetch('https://gnews.io/api/v4/search?q=weather&lang=en&apikey=6a3d0c4ab9d0762b81d296985a2fdc5a')
+        const data = await res.json()
+
+        if (res.ok && data?.articles?.length) {
+          setNewsArticles(data.articles)
+          try {
+            localStorage.setItem(NEWS_CACHE_KEY, JSON.stringify({ ts: Date.now(), articles: data.articles }))
+          } catch (e) {
+            // ignore localStorage write errors
+          }
+        } else {
+          // API returned no articles or an error (quota etc.) — fall back
+          if (cachedRaw) {
+            const cached = JSON.parse(cachedRaw)
+            setNewsArticles(cached.articles || fallbackArticles)
+          } else {
+            setNewsArticles(fallbackArticles)
+          }
+        }
+      } catch (err) {
+        console.error('News fetch failed', err)
+        const cachedRaw = localStorage.getItem(NEWS_CACHE_KEY)
+        if (cachedRaw) {
+          const cached = JSON.parse(cachedRaw)
+          setNewsArticles(cached.articles || fallbackArticles)
+        } else {
+          setNewsArticles(fallbackArticles)
+        }
+      } finally {
+        setNewsLoading(false)
+      }
+    }
+
+    loadNews()
   }, [])
 
   useEffect(() => {
@@ -445,7 +512,12 @@ function App() {
       <div className="news-panel">
         <h3>World Weather News</h3>
         <div className="news-list">
-          {newsArticles && newsArticles.length > 0 ? (
+          {newsLoading ? (
+              <div className="news-item news-placeholder">
+                <p className="news-title">Loading news…</p>
+                <p className="news-source">Updating once every {newsCacheHours} hours</p>
+            </div>
+          ) : newsArticles && newsArticles.length > 0 ? (
             newsArticles.map((article, i) => (
               <a
                 key={i}
