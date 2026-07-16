@@ -1,6 +1,13 @@
-html, body {
+html {
   margin: 0;
   overflow-x: hidden;
+  font-family: system-ui, sans-serif;
+  background-color: #0a0a12;
+}
+
+body {
+  margin: 0;
+  overflow: visible;
   font-family: system-ui, sans-serif;
   background-color: #0a0a12;
 }
@@ -67,8 +74,7 @@ html, body {
 .globe-stage-wrapper {
   position: relative;
   width: 100%;
-  height: auto;
-  min-height: 60vh;
+  height: min(85vh, 1000px);
 }
 
 .globe-stage {
@@ -94,7 +100,7 @@ html, body {
 
 .globe-canvas {
   width: 100%;
-  height: min(70vh, 720px);
+  height: min(80vh, 800px);
   display: block;
 }
 
@@ -295,7 +301,7 @@ html, body {
 .forecast-section {
   position: relative;
   z-index: 5;
-  max-width: 700px;
+  max-width: 900px;
   margin: 0 auto;
   padding: 40px 20px 100px;
   color: white;
@@ -482,11 +488,12 @@ html, body {
 
 .main-layout{
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(300px, 360px);
+  grid-template-columns: 1fr minmax(300px, 360px);
   gap: 24px;
-  width: min(1280px, 100%);
-  margin: 0 auto;
+  width: 100%;
+  margin: 0;
   padding: 0 20px;
+  box-sizing: border-box;
   align-items: start;
 }
 
@@ -600,7 +607,7 @@ html, body {
   gap: 6px;
   background: rgba(255, 255, 255, 0.05);
   border-radius: 10px;
-  padding: 8px 12px;
+  padding: 14px 18px;
   flex-shrink: 0;
   cursor: pointer;
   transition: background 0.2s ease;

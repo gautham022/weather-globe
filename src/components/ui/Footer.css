@@ -48,7 +48,13 @@
 .card{
   padding: 16px;
   border-radius: 12px;
-  transition: transform 240ms ease, box-shadow 240ms ease;
+  background: rgba(255,255,255,0.03);
+  border: 1px solid rgba(255,255,255,0.08);
+  transition: transform 240ms ease, box-shadow 240ms ease, border-color 240ms ease;
+}
+
+.card:hover{
+  border-color: rgba(74,144,255,0.35);
 }
 
 .card:hover{ transform: translateY(-6px); box-shadow: 0 18px 40px rgba(20,30,60,0.55); }

@@ -84,6 +84,7 @@ const funnyMessages = [
 
 function App() {
   const canvasRef = useRef(null)
+  const stageWrapperRef = useRef(null)
   const [city, setCity] = useState('')
   const [weather, setWeather] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -104,24 +105,28 @@ function App() {
   useEffect(() => {
     const scene = new THREE.Scene()
 
-    const camera = new THREE.PerspectiveCamera(
-      75,
-      window.innerWidth / window.innerHeight,
-      0.1,
-      1000
-    )
+    const wrapper = stageWrapperRef.current
+    const getSize = () => ({
+      width: wrapper.clientWidth,
+      height: wrapper.clientHeight,
+    })
+
+    const { width: initialWidth, height: initialHeight } = getSize()
+
+    const camera = new THREE.PerspectiveCamera(75, initialWidth / initialHeight, 0.1, 1000)
     camera.position.z = 3
 
     const renderer = new THREE.WebGLRenderer({ canvas: canvasRef.current, alpha: true })
     renderer.setClearColor(0x000000, 0)
-    renderer.setSize(window.innerWidth, window.innerHeight)
+    renderer.setPixelRatio(window.devicePixelRatio || 1)
+    renderer.setSize(initialWidth, initialHeight)
 
     const controls = new OrbitControls(camera, renderer.domElement)
     controls.enableDamping = true
     controls.dampingFactor = 0.15
     controls.minDistance = 1.5
     controls.maxDistance = 6
-    controls.enableZoom =false
+    controls.enableZoom = false
 
     const textureLoader = new THREE.TextureLoader()
     const texture = textureLoader.load(earthTexture)
@@ -169,6 +174,14 @@ function App() {
     scene.add(marker)
     markerRef.current = marker
 
+    function handleResize() {
+      const { width, height } = getSize()
+      camera.aspect = width / height
+      camera.updateProjectionMatrix()
+      renderer.setSize(width, height)
+    }
+    window.addEventListener('resize', handleResize)
+
     function animate() {
       requestAnimationFrame(animate)
       controls.update()
@@ -191,8 +204,9 @@ function App() {
         if (isFacingCamera) {
           const vector = marker.position.clone()
           vector.project(camera)
-          const x = (vector.x * 0.5 + 0.5) * window.innerWidth
-          const y = (-vector.y * 0.5 + 0.5) * window.innerHeight
+          const rect = canvasRef.current.getBoundingClientRect()
+          const x = rect.left + window.scrollX + (vector.x * 0.5 + 0.5) * rect.width
+          const y = rect.top + window.scrollY + (-vector.y * 0.5 + 0.5) * rect.height
           setPopupScreenPos({ x, y })
         } else {
           setPopupScreenPos(null)
@@ -204,6 +218,7 @@ function App() {
     animate()
 
     return () => {
+      window.removeEventListener('resize', handleResize)
       renderer.dispose()
       controls.dispose()
     }
@@ -230,9 +245,8 @@ function App() {
   }, [city])
 
   const NEWS_CACHE_KEY = 'weatherNewsCache_v1'
-  const NEWS_CACHE_TTL = 5 * 60 * 60 * 1000 // 5 hours (changeable)
+  const NEWS_CACHE_TTL = 5 * 60 * 60 * 1000
   const newsCacheHours = Math.max(1, Math.floor(NEWS_CACHE_TTL / (60 * 60 * 1000)))
-
   const fallbackArticles = [
     {
       title: 'Global weather patterns show mixed signals',
@@ -254,7 +268,6 @@ function App() {
   useEffect(() => {
     async function loadNews() {
       setNewsLoading(true)
-
       try {
         const cachedRaw = localStorage.getItem(NEWS_CACHE_KEY)
         if (cachedRaw) {
@@ -265,10 +278,8 @@ function App() {
             return
           }
         }
-
         const res = await fetch('https://gnews.io/api/v4/search?q=weather&lang=en&apikey=6a3d0c4ab9d0762b81d296985a2fdc5a')
         const data = await res.json()
-
         if (res.ok && data?.articles?.length) {
           setNewsArticles(data.articles)
           try {
@@ -277,9 +288,9 @@ function App() {
             // ignore localStorage write errors
           }
         } else {
-          // API returned no articles or an error (quota etc.) — fall back
-          if (cachedRaw) {
-            const cached = JSON.parse(cachedRaw)
+          const cachedRaw2 = localStorage.getItem(NEWS_CACHE_KEY)
+          if (cachedRaw2) {
+            const cached = JSON.parse(cachedRaw2)
             setNewsArticles(cached.articles || fallbackArticles)
           } else {
             setNewsArticles(fallbackArticles)
@@ -287,9 +298,9 @@ function App() {
         }
       } catch (err) {
         console.error('News fetch failed', err)
-        const cachedRaw = localStorage.getItem(NEWS_CACHE_KEY)
-        if (cachedRaw) {
-          const cached = JSON.parse(cachedRaw)
+        const cachedRaw3 = localStorage.getItem(NEWS_CACHE_KEY)
+        if (cachedRaw3) {
+          const cached = JSON.parse(cachedRaw3)
           setNewsArticles(cached.articles || fallbackArticles)
         } else {
           setNewsArticles(fallbackArticles)
@@ -298,7 +309,6 @@ function App() {
         setNewsLoading(false)
       }
     }
-
     loadNews()
   }, [])
 
@@ -360,7 +370,6 @@ function App() {
   const formattedDate = now.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
   const formattedTime = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
 
-
   return (
     <div className="app-container">
       <div className="stars-background">
@@ -396,7 +405,7 @@ function App() {
       </div>
 
       <div className="main-layout">
-        <div className="globe-stage-wrapper">
+        <div className="globe-stage-wrapper" ref={stageWrapperRef}>
           <div className={`globe-stage ${showRadar ? 'show-radar' : ''}`}>
             <div className="globe-layer">
               <canvas ref={canvasRef} className="globe-canvas" />
@@ -484,7 +493,7 @@ function App() {
               <circle cx="12" cy="12" r="9" />
               <path d="M12 7v5l3 2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            WEATHER RADAR 
+            WEATHER RADAR
           </button>
         </div>
 
@@ -514,8 +523,8 @@ function App() {
           style={
             canvasRef.current
               ? {
-                left: canvasRef.current.getBoundingClientRect().left + canvasRef.current.offsetWidth / 2,
-                top: canvasRef.current.getBoundingClientRect().top + canvasRef.current.offsetHeight / 2,
+                left: canvasRef.current.getBoundingClientRect().left + window.scrollX + canvasRef.current.offsetWidth / 2,
+                top: canvasRef.current.getBoundingClientRect().top + window.scrollY + canvasRef.current.offsetHeight / 2,
               }
               : {}
           }
