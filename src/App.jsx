@@ -3,8 +3,9 @@ import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { ShootingStars } from '@/components/ui/shooting-stars'
 import earthTexture from './textures/earth.jpg'
-import './App.css'
+import WeatherRadarView from './WeatherRadarView'
 import WeatherForecastPanel from './WeatherForecastPanel'
+import './App.css'
 
 function latLonToVector3(lat, lon, radius) {
   const phi = (90 - lat) * (Math.PI / 180)
@@ -93,7 +94,7 @@ function App() {
   const [placeSuggestions, setPlaceSuggestions] = useState([])
   const [newsArticles, setNewsArticles] = useState([])
   const [now, setNow] = useState(new Date())
-  const [isFlipped, setIsFlipped] = useState(false)
+  const [showRadar, setShowRadar] = useState(false)
 
   const markerRef = useRef(null)
   const targetPositionRef = useRef(null)
@@ -118,6 +119,7 @@ function App() {
     controls.dampingFactor = 0.15
     controls.minDistance = 1.5
     controls.maxDistance = 6
+    controls.enableZoom =false
 
     const textureLoader = new THREE.TextureLoader()
     const texture = textureLoader.load(earthTexture)
@@ -253,7 +255,7 @@ function App() {
     setWeather(null)
     setPopupVisible(false)
     setShowSuggestions(false)
-    setIsFlipped(false)
+    setShowRadar(false)
 
     fetch(`http://localhost/weather/${encodeURIComponent(cityName)}`)
       .then((response) => {
@@ -284,7 +286,7 @@ function App() {
   }
 
   function toggleWeatherHistory() {
-    setIsFlipped((prev) => !prev)
+    setShowRadar((prev) => !prev)
   }
 
   const formattedDate = now.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
@@ -324,43 +326,26 @@ function App() {
         />
       </div>
 
-      <div className={`globe-flip-container ${isFlipped ? 'flipped' : ''}`}>
-        <div className="flip-card">
-          <div className="flip-front">
+      <div className="globe-stage-wrapper">
+        <div className={`globe-stage ${showRadar ? 'show-radar' : ''}`}>
+          <div className="globe-layer">
             <canvas ref={canvasRef} className="globe-canvas" />
           </div>
 
-          <div className="flip-back">
-            <div className="detail-panel">
-              <div className="panel-grid">
-                <div className="panel-section panel-weather-map">
-                  <h4>Weather Map</h4>
-                  <div className="panel-placeholder">Map coming next</div>
-                </div>
-
-                <div className="panel-section panel-symbol-notation">
-                  <h4>Symbol Notation</h4>
-                  <div className="panel-placeholder">Legend coming next</div>
-                </div>
-
-                <div className="panel-section panel-five-day">
-                  <h4>5 Days Weather</h4>
-                  {weather ? (
-                    <WeatherForecastPanel cityName={weather.city} />
-                  ) : (
-                    <div className="panel-placeholder">Search a city to see the forecast</div>
-                  )}
-                </div>
-
-                <div className="panel-section panel-feels-like">
-                  <h4>City Feels Like ▾</h4>
-                  <div className="panel-placeholder">Dropdown coming next</div>
-                </div>
-              </div>
-            </div>
+          <div className="radar-layer">
+            {weather && (
+              <WeatherRadarView lat={weather.lat} lon={weather.lon} active={showRadar} />
+            )}
           </div>
         </div>
       </div>
+
+      {weather && (
+        <div className="forecast-section">
+          <h3 className="forecast-section-title">5 Days Weather — {weather.city}</h3>
+          <WeatherForecastPanel cityName={weather.city} />
+        </div>
+      )}
 
       <div className="search-wrapper">
         <div className="search-top-row">
@@ -388,7 +373,7 @@ function App() {
           </div>
 
           <button
-            className={`weather-history-btn ${isFlipped ? 'active' : ''}`}
+            className={`weather-history-btn ${showRadar ? 'active' : ''}`}
             disabled={!weather}
             onClick={toggleWeatherHistory}
           >
@@ -396,7 +381,7 @@ function App() {
               <circle cx="12" cy="12" r="9" />
               <path d="M12 7v5l3 2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            Weather History
+            WEATHER RADAR 
           </button>
         </div>
 
@@ -437,7 +422,7 @@ function App() {
         </div>
       )}
 
-      {weather && popupScreenPos && !isFlipped && (
+      {weather && popupScreenPos && !showRadar && (
         <div
           className={`weather-popup ${popupVisible ? 'popup-visible' : ''}`}
           style={{
