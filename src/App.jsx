@@ -4,6 +4,7 @@ import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import { ShootingStars } from '@/components/ui/shooting-stars'
 import earthTexture from './textures/earth.jpg'
 import './App.css'
+import WeatherForecastPanel from './WeatherForecastPanel'
 
 function latLonToVector3(lat, lon, radius) {
   const phi = (90 - lat) * (Math.PI / 180)
@@ -91,6 +92,8 @@ function App() {
   const [showSuggestions, setShowSuggestions] = useState(false)
   const [placeSuggestions, setPlaceSuggestions] = useState([])
   const [newsArticles, setNewsArticles] = useState([])
+  const [now, setNow] = useState(new Date())
+  const [isFlipped, setIsFlipped] = useState(false)
 
   const markerRef = useRef(null)
   const targetPositionRef = useRef(null)
@@ -229,6 +232,11 @@ function App() {
       .catch(() => setNewsArticles([]))
   }, [])
 
+  useEffect(() => {
+    const intervalId = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(intervalId)
+  }, [])
+
   function goToLocation(lat, lon) {
     const surfacePoint = latLonToVector3(lat, lon, 1)
     markerRef.current.position.copy(surfacePoint).multiplyScalar(1.01)
@@ -245,6 +253,7 @@ function App() {
     setWeather(null)
     setPopupVisible(false)
     setShowSuggestions(false)
+    setIsFlipped(false)
 
     fetch(`http://localhost/weather/${encodeURIComponent(cityName)}`)
       .then((response) => {
@@ -273,6 +282,13 @@ function App() {
     if (!city.trim()) return
     fetchWeatherForCity(city)
   }
+
+  function toggleWeatherHistory() {
+    setIsFlipped((prev) => !prev)
+  }
+
+  const formattedDate = now.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+  const formattedTime = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
 
   return (
     <div className="app-container">
@@ -308,29 +324,79 @@ function App() {
         />
       </div>
 
-      <canvas ref={canvasRef} className="globe-canvas" />
+      <div className={`globe-flip-container ${isFlipped ? 'flipped' : ''}`}>
+        <div className="flip-card">
+          <div className="flip-front">
+            <canvas ref={canvasRef} className="globe-canvas" />
+          </div>
+
+          <div className="flip-back">
+            <div className="detail-panel">
+              <div className="panel-grid">
+                <div className="panel-section panel-weather-map">
+                  <h4>Weather Map</h4>
+                  <div className="panel-placeholder">Map coming next</div>
+                </div>
+
+                <div className="panel-section panel-symbol-notation">
+                  <h4>Symbol Notation</h4>
+                  <div className="panel-placeholder">Legend coming next</div>
+                </div>
+
+                <div className="panel-section panel-five-day">
+                  <h4>5 Days Weather</h4>
+                  {weather ? (
+                    <WeatherForecastPanel cityName={weather.city} />
+                  ) : (
+                    <div className="panel-placeholder">Search a city to see the forecast</div>
+                  )}
+                </div>
+
+                <div className="panel-section panel-feels-like">
+                  <h4>City Feels Like ▾</h4>
+                  <div className="panel-placeholder">Dropdown coming next</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <div className="search-wrapper">
-        <div className="search-bar">
-          <input
-            type="text"
-            value={city}
-            onChange={(e) => {
-              setCity(e.target.value)
-              setShowSuggestions(true)
-            }}
-            onFocus={() => setShowSuggestions(true)}
-            onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') handleSearch()
-            }}
-            placeholder="Search city..."
-          />
-          <button onClick={handleSearch}>
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-              <circle cx="11" cy="11" r="7" stroke="white" strokeWidth="2" />
-              <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="white" strokeWidth="2" strokeLinecap="round" />
+        <div className="search-top-row">
+          <div className="search-bar">
+            <input
+              type="text"
+              value={city}
+              onChange={(e) => {
+                setCity(e.target.value)
+                setShowSuggestions(true)
+              }}
+              onFocus={() => setShowSuggestions(true)}
+              onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') handleSearch()
+              }}
+              placeholder="Search city..."
+            />
+            <button onClick={handleSearch}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                <circle cx="11" cy="11" r="7" stroke="white" strokeWidth="2" />
+                <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="white" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+            </button>
+          </div>
+
+          <button
+            className={`weather-history-btn ${isFlipped ? 'active' : ''}`}
+            disabled={!weather}
+            onClick={toggleWeatherHistory}
+          >
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+              <circle cx="12" cy="12" r="9" />
+              <path d="M12 7v5l3 2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
+            Weather History
           </button>
         </div>
 
@@ -371,7 +437,7 @@ function App() {
         </div>
       )}
 
-      {weather && popupScreenPos && (
+      {weather && popupScreenPos && !isFlipped && (
         <div
           className={`weather-popup ${popupVisible ? 'popup-visible' : ''}`}
           style={{
@@ -379,6 +445,10 @@ function App() {
             top: popupScreenPos.y - 60,
           }}
         >
+          <div className="popup-datetime">
+            {formattedDate} · {formattedTime}
+          </div>
+
           <h2>{weather.city}</h2>
           <p>{weather.temperature}°C (feels like {weather.feels_like}°C)</p>
           <p>{weather.description}</p>
