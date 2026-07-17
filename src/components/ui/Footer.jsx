@@ -40,6 +40,10 @@ export default function Footer() {
     'Wind Speed',
     'Feels Like',
     'Cloud Coverage',
+    'Sunrise & Sunset',
+    'Air Quality Index',
+    'Wind Compass',
+    'Saved Places',
     'Responsive Design',
   ]
 
@@ -59,11 +63,8 @@ export default function Footer() {
   ]
 
   const comingSoon = [
-    'Air Quality Index',
     'UV Index',
-    'Sunrise & Sunset',
     'Moon Phase',
-    'Favorite Cities',
     'Hourly Forecast',
     'Weather Alerts',
     'Satellite Layers',
@@ -77,10 +78,25 @@ export default function Footer() {
     <footer className="wg-footer" role="contentinfo">
       <div className="wg-footer-inner">
         <div className="wg-footer-grid">
+          
           <div className="wg-about card">
             <h4 className="wg-section-title">ABOUT THE PROJECT</h4>
             <div className="wg-title">Weather Globe</div>
             <p className="wg-desc">Weather Globe is an interactive weather forecasting platform built using modern web technologies. Users can search any city, explore the 3D Earth, view live weather conditions, 5-day forecasts, interactive weather radar, and global weather news in one place.</p>
+            <div className="wg-about-stats">
+              <div className="about-stat-item">
+                <strong>15+</strong>
+                <span>Features</span>
+              </div>
+              <div className="about-stat-item">
+                <strong>Jul 2026</strong>
+                <span>Built</span>
+              </div>
+              <div className="about-stat-item">
+                <strong>Open</strong>
+                <span>Source</span>
+              </div>
+            </div>
           </div>
 
           <div className="wg-features card">
@@ -99,6 +115,7 @@ export default function Footer() {
                 <span key={t} className="tech-badge">{t}</span>
               ))}
             </div>
+            <p className="wg-tech-note">{tech.length} tools powering this project, end to end.</p>
           </div>
 
           <div className="wg-developer card">
@@ -121,9 +138,18 @@ export default function Footer() {
           <div className="wg-status card">
             <h4 className="wg-section-title">PROJECT STATUS</h4>
             <div className="status-grid">
-              <div className="status-item"><strong>Version</strong><span>v1.0.0</span></div>
-              <div className="status-item"><strong>Status</strong><span>Active Development</span></div>
-              <div className="status-item"><strong>Last Updated</strong><span>July 2026</span></div>
+              <div className="status-item">
+                <span className="status-label">Version</span>
+                <strong className="status-value">v1.0.0</strong>
+              </div>
+              <div className="status-item">
+                <span className="status-label">Status</span>
+                <strong className="status-value">Active Development</strong>
+              </div>
+              <div className="status-item">
+                <span className="status-label">Last Updated</span>
+                <strong className="status-value">July 2026</strong>
+              </div>
             </div>
           </div>
 

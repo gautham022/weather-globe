@@ -8,6 +8,7 @@ import Footer from './components/ui/Footer'
 import WeatherForecastPanel from './WeatherForecastPanel'
 import './App.css'
 import PlacesPanel from './PlacesPanel'
+import SidePanels from './SidePanels'
 
 function latLonToVector3(lat, lon, radius) {
   const phi = (90 - lat) * (Math.PI / 180)
@@ -454,6 +455,10 @@ function App() {
       </div>
 
       <div className="secondary-layout">
+        <div className="side-panels-column">
+          <SidePanels weather={weather} />
+        </div>
+
         {weather && (
           <div className="forecast-section">
             <h3 className="forecast-section-title">5 Days Weather — {weather.city}</h3>
