@@ -7,6 +7,7 @@ import WeatherRadarView from './WeatherRadarView'
 import Footer from './components/ui/Footer'
 import WeatherForecastPanel from './WeatherForecastPanel'
 import './App.css'
+import PlacesPanel from './PlacesPanel'
 
 function latLonToVector3(lat, lon, radius) {
   const phi = (90 - lat) * (Math.PI / 180)
@@ -452,12 +453,18 @@ function App() {
         </aside>
       </div>
 
-      {weather && (
-        <div className="forecast-section">
-          <h3 className="forecast-section-title">5 Days Weather — {weather.city}</h3>
-          <WeatherForecastPanel cityName={weather.city} />
+      <div className="secondary-layout">
+        {weather && (
+          <div className="forecast-section">
+            <h3 className="forecast-section-title">5 Days Weather — {weather.city}</h3>
+            <WeatherForecastPanel cityName={weather.city} />
+          </div>
+        )}
+
+        <div className="places-column">
+          <PlacesPanel />
         </div>
-      )}
+      </div>
 
       <div className="search-wrapper">
         <div className="search-top-row">
