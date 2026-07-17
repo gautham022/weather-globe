@@ -19,6 +19,29 @@ function saveSavedPlaces(places) {
   }
 }
 
+function formatCityDateTime(timezoneOffsetSeconds) {
+  const now = new Date();
+
+  // Convert current time to UTC
+  const utcTime =
+    now.getTime() + now.getTimezoneOffset() * 60 * 1000;
+
+  // Apply city's timezone offset
+  const cityTime = new Date(
+    utcTime + timezoneOffsetSeconds * 1000
+  );
+
+  return cityTime.toLocaleString([], {
+    weekday: "short",
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+  });
+}
+
 function PlacesPanel() {
   const [places, setPlaces] = useState(() => loadSavedPlaces())
   const [placeData, setPlaceData] = useState({})
@@ -81,11 +104,7 @@ function PlacesPanel() {
       return next
     })
   }
-
-  const now = new Date()
-  const formattedDate = now.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
-  const formattedTime = now.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
-
+  
   return (
     <div className="places-panel">
       <h3>My Places</h3>
@@ -137,7 +156,7 @@ function PlacesPanel() {
                 ) : (
                   <>
                     <div className="place-datetime">
-                      {formattedDate} · {formattedTime}
+                      {formatCityDateTime(entry.data.timezone)}
                     </div>
                     <h4 className="place-city">{entry.data.city}</h4>
                     <p className="place-temp">

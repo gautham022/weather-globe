@@ -21,6 +21,16 @@ function latLonToVector3(lat, lon, radius) {
   return new THREE.Vector3(x, y, z)
 }
 
+function formatCityDateTime(timezoneOffsetSeconds) {
+  if (timezoneOffsetSeconds == null) return ''
+  const nowUtcMs = Date.now() + new Date().getTimezoneOffset() * 60000
+  const cityMs = nowUtcMs + timezoneOffsetSeconds * 1000
+  const cityDate = new Date(cityMs)
+  const date = cityDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' })
+  const time = cityDate.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
+  return `${date} · ${time}`
+}
+
 const funnyMessages = [
   "Hmm, that city seems to be hiding from satellites.",
   "404: City ghosted us.",
@@ -474,24 +484,30 @@ function App() {
       <div className="search-wrapper">
         <div className="search-top-row">
           <div className="search-bar">
-            <input
-              type="text"
-              value={city}
-              onChange={(e) => {
-                setCity(e.target.value)
-                setShowSuggestions(true)
-              }}
-              onFocus={() => setShowSuggestions(true)}
-              onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') handleSearch()
-              }}
-              placeholder="Search city..."
-            />
+            <div className="search-input-wrapper">
+              <svg className="search-input-icon" width="16" height="16" viewBox="0 0 24 24" fill="none">
+                <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
+                <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+              <input
+                type="text"
+                value={city}
+                onChange={(e) => {
+                  setCity(e.target.value)
+                  setShowSuggestions(true)
+                }}
+                onFocus={() => setShowSuggestions(true)}
+                onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') handleSearch()
+                }}
+                placeholder="Search city..."
+              />
+            </div>
             <button onClick={handleSearch}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                <circle cx="11" cy="11" r="7" stroke="white" strokeWidth="2" />
-                <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="white" strokeWidth="2" strokeLinecap="round" />
+                <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
+                <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
               </svg>
             </button>
           </div>
@@ -555,7 +571,7 @@ function App() {
           }}
         >
           <div className="popup-datetime">
-            {formattedDate} · {formattedTime}
+            {formatCityDateTime(weather.timezone)}
           </div>
 
           <h2>{weather.city}</h2>
