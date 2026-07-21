@@ -9,6 +9,7 @@ import WeatherForecastPanel from './WeatherForecastPanel'
 import './App.css'
 import PlacesPanel from './PlacesPanel'
 import SidePanels from './SidePanels'
+import globeLabels from './globeLabels'
 
 function latLonToVector3(lat, lon, radius) {
   const phi = (90 - lat) * (Math.PI / 180)
@@ -23,8 +24,7 @@ function latLonToVector3(lat, lon, radius) {
 
 function formatCityDateTime(timezoneOffsetSeconds) {
   if (timezoneOffsetSeconds == null) return ''
-  const nowUtcMs = Date.now() + new Date().getTimezoneOffset() * 60000
-  const cityMs = nowUtcMs + timezoneOffsetSeconds * 1000
+  const cityMs = Date.now() + timezoneOffsetSeconds * 1000
   const cityDate = new Date(cityMs)
   const date = cityDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', timeZone: 'UTC' })
   const time = cityDate.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', timeZone: 'UTC' })
@@ -113,6 +113,8 @@ function App() {
 
   const markerRef = useRef(null)
   const targetPositionRef = useRef(null)
+  const labelRefs = useRef([])
+  const lastCameraQuatRef = useRef(null)
 
   useEffect(() => {
     const scene = new THREE.Scene()
@@ -147,6 +149,40 @@ function App() {
     const material = new THREE.MeshStandardMaterial({ map: texture })
     const globe = new THREE.Mesh(geometry, material)
     scene.add(globe)
+
+    // Add country borders
+    fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
+      .then(res => res.json())
+      .then(data => {
+        const borderMat = new THREE.LineBasicMaterial({ color: 0x000000, transparent: true, opacity: 0.5 })
+        const borderGroup = new THREE.Group()
+        data.features.forEach(feature => {
+          if (!feature.geometry) return;
+          if (feature.geometry.type === 'Polygon') {
+            feature.geometry.coordinates.forEach(coords => {
+              const points = []
+              coords.forEach(([lon, lat]) => {
+                points.push(latLonToVector3(lat, lon, 1.002))
+              })
+              const geo = new THREE.BufferGeometry().setFromPoints(points)
+              borderGroup.add(new THREE.Line(geo, borderMat))
+            })
+          } else if (feature.geometry.type === 'MultiPolygon') {
+            feature.geometry.coordinates.forEach(polygon => {
+              polygon.forEach(coords => {
+                const points = []
+                coords.forEach(([lon, lat]) => {
+                  points.push(latLonToVector3(lat, lon, 1.002))
+                })
+                const geo = new THREE.BufferGeometry().setFromPoints(points)
+                borderGroup.add(new THREE.Line(geo, borderMat))
+              })
+            })
+          }
+        })
+        scene.add(borderGroup)
+      })
+      .catch(err => console.error("Could not load borders:", err))
 
     const light = new THREE.DirectionalLight(0xffffff, 2)
     light.position.set(5, 3, 5)
@@ -207,11 +243,22 @@ function App() {
         }
       }
 
+      let isMoving = false
+      if (lastCameraQuatRef.current) {
+        const angle = lastCameraQuatRef.current.angleTo(camera.quaternion)
+        if (angle > 0.0005) {
+          isMoving = true
+        }
+      }
+      lastCameraQuatRef.current = camera.quaternion.clone()
+
+      const horizonDot = 1 / camera.position.length()
+
       if (marker.visible) {
         const markerDirection = marker.position.clone().normalize()
         const cameraDirection = camera.position.clone().normalize()
         const facingDot = markerDirection.dot(cameraDirection)
-        const isFacingCamera = facingDot > 0.15
+        const isFacingCamera = facingDot > horizonDot
 
         if (isFacingCamera) {
           const vector = marker.position.clone()
@@ -224,6 +271,30 @@ function App() {
           setPopupScreenPos(null)
         }
       }
+
+      globeLabels.forEach((label, index) => {
+        const el = labelRefs.current[index]
+        if (!el) return
+
+        const labelPos = latLonToVector3(label.lat, label.lon, 1.01)
+        const labelDirection = labelPos.clone().normalize()
+        const cameraDirectionForLabel = camera.position.clone().normalize()
+        const labelFacingDot = labelDirection.dot(cameraDirectionForLabel)
+
+        if (!isMoving && labelFacingDot > horizonDot) {
+          const vector = labelPos.clone()
+          vector.project(camera)
+          const rect = canvasRef.current.getBoundingClientRect()
+          const x = (vector.x * 0.5 + 0.5) * rect.width
+          const y = (-vector.y * 0.5 + 0.5) * rect.height
+
+          el.style.left = `${x}px`
+          el.style.top = `${y}px`
+          el.style.opacity = String(Math.min(1, (labelFacingDot - horizonDot) * 4))
+        } else {
+          el.style.opacity = '0'
+        }
+      })
 
       renderer.render(scene, camera)
     }
@@ -421,6 +492,18 @@ function App() {
           <div className={`globe-stage ${showRadar ? 'show-radar' : ''}`}>
             <div className="globe-layer">
               <canvas ref={canvasRef} className="globe-canvas" />
+
+              <div className="globe-labels-layer">
+                {globeLabels.map((label, index) => (
+                  <span
+                    key={label.name}
+                    ref={(el) => (labelRefs.current[index] = el)}
+                    className="globe-place-label"
+                  >
+                    {label.name}
+                  </span>
+                ))}
+              </div>
             </div>
 
             <div className="radar-layer">

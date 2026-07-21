@@ -20,18 +20,11 @@ function saveSavedPlaces(places) {
 }
 
 function formatCityDateTime(timezoneOffsetSeconds) {
-  const now = new Date();
-
-  // Convert current time to UTC
-  const utcTime =
-    now.getTime() + now.getTimezoneOffset() * 60 * 1000;
-
-  // Apply city's timezone offset
-  const cityTime = new Date(
-    utcTime + timezoneOffsetSeconds * 1000
-  );
+  if (timezoneOffsetSeconds == null) return ''
+  const cityTime = new Date(Date.now() + timezoneOffsetSeconds * 1000);
 
   return cityTime.toLocaleString([], {
+    timeZone: "UTC",
     weekday: "short",
     day: "numeric",
     month: "short",
