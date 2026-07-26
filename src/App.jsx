@@ -10,6 +10,7 @@ import './App.css'
 import PlacesPanel from './PlacesPanel'
 import SidePanels from './SidePanels'
 import globeLabels from './globeLabels'
+import AIChatBox from './AIChatBox'
 
 function latLonToVector3(lat, lon, radius) {
   const phi = (90 - lat) * (Math.PI / 180)
@@ -508,7 +509,12 @@ function App() {
 
             <div className="radar-layer">
               {weather && (
-                <WeatherRadarView lat={weather.lat} lon={weather.lon} active={showRadar} />
+                <WeatherRadarView
+                  lat={weather.lat}
+                  lon={weather.lon}
+                  active={showRadar}
+                  onClose={() => setShowRadar(false)}
+                />
               )}
             </div>
           </div>
@@ -666,6 +672,7 @@ function App() {
       )}
 
       <Footer />
+      <AIChatBox city={weather?.city} weather={weather} />
     </div>
   )
 }

@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 
-function WeatherRadarView({ lat, lon, active }) {
+function WeatherRadarView({ lat, lon, active, onClose }) {
   const mapContainerRef = useRef(null)
   const mapInstanceRef = useRef(null)
   const layersRef = useRef({})
@@ -228,7 +228,16 @@ function WeatherRadarView({ lat, lon, active }) {
 
   return (
     <div ref={radarCardRef} className="radar-card">
-      <div className="radar-card-header">WORLD WEATHER RADAR</div>
+      <div className="radar-card-header">
+          WORLD WEATHER RADAR
+          <button
+            className="radar-close-header-btn"
+            onClick={() => typeof onClose === 'function' && onClose()}
+            aria-label="Back to globe"
+          >
+            ✕
+          </button>
+        </div>
       <div className="radar-overlay-controls">
         <button className={selectedOverlay === 'precipitation' ? 'active' : ''} onClick={() => setOverlay('precipitation')}>
           Precipitation
