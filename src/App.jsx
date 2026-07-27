@@ -11,8 +11,6 @@ import PlacesPanel from './PlacesPanel'
 import SidePanels from './SidePanels'
 import globeLabels from './globeLabels'
 import AIChatBox from './AIChatBox'
-import { API_URL } from './config';
-import LoginPage from './components/ui/LoginPage';
 
 function latLonToVector3(lat, lon, radius) {
   const phi = (90 - lat) * (Math.PI / 180)
@@ -112,8 +110,6 @@ function App() {
   const [newsArticles, setNewsArticles] = useState([])
   const [newsLoading, setNewsLoading] = useState(false)
   const [now, setNow] = useState(new Date())
-  const [showRadar, setShowRadar] = useState(false)
-  const [showLogin, setShowLogin] = useState(false)
 
   const markerRef = useRef(null)
   const targetPositionRef = useRef(null)
@@ -365,7 +361,7 @@ function App() {
             return
           }
         }
-        const res = await fetch(`${API_URL}/news`)
+        const res = await fetch('https://gnews.io/api/v4/search?q=weather&lang=en&apikey=6a3d0c4ab9d0762b81d296985a2fdc5a')
         const data = await res.json()
         if (res.ok && data?.articles?.length) {
           setNewsArticles(data.articles)
@@ -420,9 +416,8 @@ function App() {
     setWeather(null)
     setPopupVisible(false)
     setShowSuggestions(false)
-    setShowRadar(false)
 
-    fetch(`${API_URL}/weather/${encodeURIComponent(cityName)}`)
+    fetch(`http://localhost/weather/${encodeURIComponent(cityName)}`)
       .then((response) => {
         if (!response.ok) throw new Error('City not found')
         return response.json()
@@ -448,10 +443,6 @@ function App() {
   function handleSearch() {
     if (!city.trim()) return
     fetchWeatherForCity(city)
-  }
-
-  function toggleWeatherHistory() {
-    setShowRadar((prev) => !prev)
   }
 
   const formattedDate = now.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
@@ -492,8 +483,12 @@ function App() {
       </div>
 
       <div className="main-layout">
+        <div className="globe-side-left">
+          <SidePanels weather={weather} />
+        </div>
+
         <div className="globe-stage-wrapper" ref={stageWrapperRef}>
-          <div className={`globe-stage ${showRadar ? 'show-radar' : ''}`}>
+          <div className="globe-stage">
             <div className="globe-layer">
               <canvas ref={canvasRef} className="globe-canvas" />
 
@@ -509,25 +504,33 @@ function App() {
                 ))}
               </div>
             </div>
-
-            <div className="radar-layer">
-              {weather && (
-                <WeatherRadarView
-                  lat={weather.lat}
-                  lon={weather.lon}
-                  active={showRadar}
-                  onClose={() => setShowRadar(false)}
-                />
-              )}
-            </div>
           </div>
         </div>
+      </div>
 
-        <aside className="sidebar">
-          <button className="login-trigger-btn" onClick={() => setShowLogin(true)}>
-            Log In
-          </button>
+      <div className="radar-section">
+        <div className="radar-column">
+          {weather ? (
+            <WeatherRadarView lat={weather.lat} lon={weather.lon} active={true} />
+          ) : (
+            <div className="panel-placeholder">Search a city to see its radar.</div>
+          )}
+        </div>
 
+        <div className="places-column">
+          <PlacesPanel onSelectPlace={fetchWeatherForCity} />
+        </div>
+      </div>
+
+      <div className="secondary-layout">
+        {weather && (
+          <div className="forecast-section">
+            <h3 className="forecast-section-title">5 Days Weather — {weather.city}</h3>
+            <WeatherForecastPanel cityName={weather.city} />
+          </div>
+        )}
+
+        <div className="news-panel-column">
           <div className="news-panel">
             <h3>World Weather News</h3>
             <div className="news-list">
@@ -557,23 +560,6 @@ function App() {
               )}
             </div>
           </div>
-        </aside>
-      </div>
-
-      <div className="secondary-layout">
-        <div className="side-panels-column">
-          <SidePanels weather={weather} />
-        </div>
-
-        {weather && (
-          <div className="forecast-section">
-            <h3 className="forecast-section-title">5 Days Weather — {weather.city}</h3>
-            <WeatherForecastPanel cityName={weather.city} />
-          </div>
-        )}
-
-        <div className="places-column">
-          <PlacesPanel />
         </div>
       </div>
 
@@ -607,18 +593,6 @@ function App() {
               </svg>
             </button>
           </div>
-
-          <button
-            className={`weather-history-btn ${showRadar ? 'active' : ''}`}
-            disabled={!weather}
-            onClick={toggleWeatherHistory}
-          >
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
-              <circle cx="12" cy="12" r="9" />
-              <path d="M12 7v5l3 2" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            WEATHER RADAR
-          </button>
         </div>
 
         {showSuggestions && placeSuggestions.length > 0 && (
@@ -658,7 +632,7 @@ function App() {
         </div>
       )}
 
-      {weather && popupScreenPos && !showRadar && (
+      {weather && popupScreenPos && (
         <div
           className={`weather-popup ${popupVisible ? 'popup-visible' : ''}`}
           style={{
@@ -678,17 +652,9 @@ function App() {
         </div>
       )}
 
-      {showLogin && (
-        <div className="login-modal-overlay" onClick={() => setShowLogin(false)}>
-          <div className="login-modal-content" onClick={(e) => e.stopPropagation()}>
-            <button className="login-modal-close" onClick={() => setShowLogin(false)}>×</button>
-            <LoginPage onLoginSuccess={() => setShowLogin(false)} />
-          </div>
-        </div>
-      )}
+      <AIChatBox variant="floating" city={weather?.city} weather={weather} />
 
       <Footer />
-      <AIChatBox city={weather?.city} weather={weather} />
     </div>
   )
 }
