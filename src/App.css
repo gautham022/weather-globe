@@ -1223,8 +1223,10 @@ body {
   z-index: 1000;
 }
 
-.login-modal-content {
-  position: relative;
+.login-modal-content .login-page {
+  min-height: auto;
+  background: transparent;
+  display: block;
 }
 
 .login-modal-content {
