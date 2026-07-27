@@ -1281,7 +1281,7 @@ body {
 
 .form-section h2 {
   font-size: 26px;
-  color: #ffffff;
+  color: #fbf6f6;
   margin-bottom: 6px;
 }
 
@@ -1304,7 +1304,7 @@ body {
   padding: 12px 16px;
   border: 1.5px solid rgba(255, 255, 255, 0.25);
   background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+  color: #0e0d0d;
   border-radius: 10px;
   font-size: 14px;
   outline: none;
