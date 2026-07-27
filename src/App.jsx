@@ -12,6 +12,7 @@ import SidePanels from './SidePanels'
 import globeLabels from './globeLabels'
 import AIChatBox from './AIChatBox'
 import { API_URL } from './config';
+import LoginPage from './components/ui/LoginPage';
 
 function latLonToVector3(lat, lon, radius) {
   const phi = (90 - lat) * (Math.PI / 180)
@@ -112,6 +113,7 @@ function App() {
   const [newsLoading, setNewsLoading] = useState(false)
   const [now, setNow] = useState(new Date())
   const [showRadar, setShowRadar] = useState(false)
+  const [showLogin, setShowLogin] = useState(false)
 
   const markerRef = useRef(null)
   const targetPositionRef = useRef(null)
@@ -522,6 +524,10 @@ function App() {
         </div>
 
         <aside className="sidebar">
+          <button className="login-trigger-btn" onClick={() => setShowLogin(true)}>
+            Log In
+          </button>
+
           <div className="news-panel">
             <h3>World Weather News</h3>
             <div className="news-list">
@@ -669,6 +675,15 @@ function App() {
           <p>{weather.description}</p>
           <p>Humidity: {weather.humidity}%</p>
           <p>Wind: {weather.wind_speed} m/s</p>
+        </div>
+      )}
+
+      {showLogin && (
+        <div className="login-modal-overlay" onClick={() => setShowLogin(false)}>
+          <div className="login-modal-content" onClick={(e) => e.stopPropagation()}>
+            <button className="login-modal-close" onClick={() => setShowLogin(false)}>×</button>
+            <LoginPage onLoginSuccess={() => setShowLogin(false)} />
+          </div>
         </div>
       )}
 
