@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { API_URL } from './config';
 
 const STORAGE_KEY = 'weatherGlobeSavedPlaces_v1'
 
@@ -54,7 +55,7 @@ function PlacesPanel() {
         [cityName]: { status: 'loading' },
       }))
 
-      fetch(`http://localhost/weather/${encodeURIComponent(cityName)}`)
+      fetch(`${API_URL}/weather/${encodeURIComponent(cityName)}`)
         .then((response) => {
           if (!response.ok) throw new Error('not found')
           return response.json()

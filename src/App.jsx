@@ -11,6 +11,7 @@ import PlacesPanel from './PlacesPanel'
 import SidePanels from './SidePanels'
 import globeLabels from './globeLabels'
 import AIChatBox from './AIChatBox'
+import { API_URL } from './config';
 
 function latLonToVector3(lat, lon, radius) {
   const phi = (90 - lat) * (Math.PI / 180)
@@ -362,7 +363,7 @@ function App() {
             return
           }
         }
-        const res = await fetch('https://gnews.io/api/v4/search?q=weather&lang=en&apikey=6a3d0c4ab9d0762b81d296985a2fdc5a')
+        const res = await fetch(`${API_URL}/news`)
         const data = await res.json()
         if (res.ok && data?.articles?.length) {
           setNewsArticles(data.articles)
@@ -419,7 +420,7 @@ function App() {
     setShowSuggestions(false)
     setShowRadar(false)
 
-    fetch(`http://localhost/weather/${encodeURIComponent(cityName)}`)
+    fetch(`${API_URL}/weather/${encodeURIComponent(cityName)}`)
       .then((response) => {
         if (!response.ok) throw new Error('City not found')
         return response.json()

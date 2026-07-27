@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react'
 import * as THREE from 'three'
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js'
 import earthTexture from './textures/earth.jpg'
+import { API_URL } from './config';
 
 function latLonToVector3(lat, lon, radius) {
   const phi = (90 - lat) * (Math.PI / 180)
@@ -154,7 +155,7 @@ function ThreeTest() {
     setError(null)
     setWeather(null)
 
-    fetch(`http://localhost/weather/${encodeURIComponent(city)}`)
+    fetch(`${API_URL}/weather/${encodeURIComponent(city)}`)
       .then((response) => {
         if (!response.ok) throw new Error('City not found')
         return response.json()

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { API_URL } from './config';
 
 function formatTime(unixSeconds) {
   return new Date(unixSeconds * 1000).toLocaleTimeString(undefined, {
@@ -26,7 +27,7 @@ function SidePanels({ weather }) {
     if (!weather) return
 
     setAqiLoading(true)
-    fetch(`http://localhost/air-quality/${weather.lat}/${weather.lon}`)
+    fetch(`${API_URL}/air-quality/${weather.lat}/${weather.lon}`)
       .then((response) => {
         if (!response.ok) throw new Error('failed')
         return response.json()

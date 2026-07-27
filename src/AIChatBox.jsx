@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react'
 import { Send, Bot, X, Loader2, Sparkles } from 'lucide-react'
 import './AIChatBox.css'
+import { API_URL } from './config';
 
 function AIChatBox({ city, weather, variant = 'floating' }) {
   const isDocked = variant === 'docked'
@@ -31,7 +32,7 @@ function AIChatBox({ city, weather, variant = 'floating' }) {
     setError(null)
     setIsLoading(true)
 
-    fetch('http://localhost/chat', {
+    fetch(`${API_URL}/chat`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({

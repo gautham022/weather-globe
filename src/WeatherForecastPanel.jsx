@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { API_URL } from './config';
 
 function groupForecastByDay(forecastArray) {
   const days = {}
@@ -67,7 +68,7 @@ function WeatherForecastPanel({ cityName }) {
     setError(null)
     setExpandedDate(null)
 
-    fetch(`http://localhost/forecast/${encodeURIComponent(cityName)}`)
+    fetch(`${API_URL}/forecast/${encodeURIComponent(cityName)}`)
       .then((response) => {
         if (!response.ok) throw new Error('Forecast unavailable')
         return response.json()
