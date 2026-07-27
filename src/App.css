@@ -1225,8 +1225,6 @@ body {
 
 .login-modal-content {
   position: relative;
-  border-radius: 24px;
-  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.45);
 }
 
 .login-modal-content {
