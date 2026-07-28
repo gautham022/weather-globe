@@ -5,8 +5,9 @@ import gsap from 'gsap';
  * CharacterScene
  * Renders the 3 blob characters and drives all their behavior off a single
  * `state` prop: 'idle' | 'typingEmail' | 'passwordHidden' | 'passwordVisible' | 'error' | 'success'
+ * `exiting`: when true, plays a shrink/slide-down/fade-out exit animation.
  */
-export default function CharacterScene({ state }) {
+export default function CharacterScene({ state, exiting }) {
   const sceneRef = useRef(null);
   const groupRefs = {
     orange: useRef(null),
@@ -25,26 +26,59 @@ export default function CharacterScene({ state }) {
     if (el && !pupilRefs.current.includes(el)) pupilRefs.current.push(el);
   };
 
-  // Entrance animation on mount
+  // Entrance animation on mount — always set final state first, then animate in.
   useEffect(() => {
-    const groups = Object.values(groupRefs).map((r) => r.current).filter(Boolean);
-    gsap.set(groups, { transformOrigin: '50% 100%' });
-    gsap.from(groups, {
-      scaleY: 0.2,
-      y: 40,
-      opacity: 0,
-      duration: 0.6,
-      ease: 'back.out(2)',
-      stagger: 0.08,
-    });
+    const ctx = gsap.context(() => {
+      const groups = Object.values(groupRefs)
+        .map((r) => r.current)
+        .filter(Boolean);
+
+      gsap.set(groups, {
+        transformOrigin: '50% 100%',
+        scaleY: 1,
+        y: 0,
+        opacity: 1,
+        rotate: 0,
+      });
+
+      gsap.from(groups, {
+        scaleY: 0.2,
+        y: 40,
+        opacity: 0,
+        duration: 0.6,
+        ease: 'back.out(2)',
+        stagger: 0.08,
+        clearProps: 'scaleY,opacity',
+      });
+    }, sceneRef);
+
+    return () => ctx.revert();
   }, []);
+
+  // Exit animation — plays when `exiting` becomes true, right before unmount
+  useEffect(() => {
+    if (!exiting) return;
+    const groups = Object.values(groupRefs)
+      .map((r) => r.current)
+      .filter(Boolean);
+
+    gsap.to(groups, {
+      y: 60,
+      scaleY: 0.2,
+      opacity: 0,
+      duration: 0.35,
+      ease: 'power2.in',
+      stagger: 0.05,
+      transformOrigin: '50% 100%',
+    });
+  }, [exiting]);
 
   // Cursor tracking: pupils move within eyes, bodies lean subtly toward cursor
   useEffect(() => {
     const covered = state === 'passwordHidden';
 
     const handleMouseMove = (e) => {
-      if (covered) return;
+      if (covered || exiting) return;
 
       pupilRefs.current.forEach((pupil) => {
         const rect = pupil.getBoundingClientRect();
@@ -80,10 +114,11 @@ export default function CharacterScene({ state }) {
 
     window.addEventListener('mousemove', handleMouseMove);
     return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, [state]);
+  }, [state, exiting]);
 
   // State-driven reactions
   useEffect(() => {
+    if (exiting) return; // don't fight the exit animation
     const covers = Object.values(coverRefs).map((r) => r.current).filter(Boolean);
     const groups = Object.values(groupRefs).map((r) => r.current).filter(Boolean);
 
@@ -125,7 +160,7 @@ export default function CharacterScene({ state }) {
       gsap.to(covers, { y: -40, opacity: 0, duration: 0.3 });
       gsap.to(groups, { y: 0, duration: 0.3 });
     }
-  }, [state]);
+  }, [state, exiting]);
 
   return (
     <svg

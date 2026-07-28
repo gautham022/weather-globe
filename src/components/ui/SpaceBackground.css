@@ -1,0 +1,126 @@
+.space-background {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background: radial-gradient(ellipse at 50% 30%, #0b1030 0%, #04050f 70%);
+  z-index: 0;
+}
+
+.stars-layer {
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(1px 1px at 20% 30%, #fff, transparent),
+    radial-gradient(1px 1px at 60% 70%, #fff, transparent),
+    radial-gradient(1px 1px at 80% 20%, #fff, transparent),
+    radial-gradient(1px 1px at 35% 85%, #fff, transparent),
+    radial-gradient(1px 1px at 90% 55%, #fff, transparent),
+    radial-gradient(1px 1px at 10% 60%, #fff, transparent);
+  background-repeat: repeat;
+  background-size: 400px 400px;
+  opacity: 0.6;
+}
+
+/* --- 3D solar system --- */
+.solar-system-wrapper {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  perspective: 900px;
+}
+
+.solar-system {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(55deg);
+}
+
+.sun {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, #fff6d0, #fbbf24 60%, #f59e0b);
+  box-shadow: 0 0 30px 8px rgba(251, 191, 36, 0.5);
+  z-index: 2;
+  transform: translateZ(2px);
+}
+
+.orbit {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+  animation-name: spin;
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
+  transform: translate(-50%, -50%);
+  transform-style: preserve-3d;
+}
+
+.planet {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translate(-50%, -50%) translateZ(4px);
+  border-radius: 50%;
+  box-shadow: 0 0 6px rgba(255, 255, 255, 0.4);
+}
+
+@keyframes spin {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* --- Spaceships: randomized wandering drift --- */
+.spaceship {
+  position: absolute;
+  opacity: 0.85;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+  filter: drop-shadow(0 0 4px rgba(148, 163, 184, 0.5));
+  z-index: 1;
+}
+
+@keyframes drift1 {
+  0%   { transform: translate(0, 0) rotate(20deg); }
+  25%  { transform: translate(120px, 60px) rotate(35deg); }
+  50%  { transform: translate(200px, -40px) rotate(10deg); }
+  75%  { transform: translate(60px, -120px) rotate(-15deg); }
+  100% { transform: translate(0, 0) rotate(20deg); }
+}
+
+@keyframes drift2 {
+  0%   { transform: translate(0, 0) rotate(-30deg); }
+  30%  { transform: translate(-150px, 80px) rotate(-10deg); }
+  60%  { transform: translate(-80px, -100px) rotate(-45deg); }
+  100% { transform: translate(0, 0) rotate(-30deg); }
+}
+
+@keyframes drift3 {
+  0%   { transform: translate(0, 0) rotate(5deg); }
+  40%  { transform: translate(100px, -80px) rotate(25deg); }
+  70%  { transform: translate(-60px, -30px) rotate(-5deg); }
+  100% { transform: translate(0, 0) rotate(5deg); }
+}
+
+@keyframes drift4 {
+  0%   { transform: translate(0, 0) rotate(-15deg); }
+  35%  { transform: translate(-100px, -60px) rotate(-40deg); }
+  65%  { transform: translate(90px, 100px) rotate(0deg); }
+  100% { transform: translate(0, 0) rotate(-15deg); }
+}
+
+@media (max-width: 720px) {
+  .solar-system-wrapper { transform: scale(0.6); }
+}
