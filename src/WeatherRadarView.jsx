@@ -63,38 +63,41 @@ function WeatherRadarView({ lat, lon, active, onClose }) {
   }, [active, lat, lon])
 
   async function ensureRainViewerLayer() {
-    if (!mapInstanceRef.current) return
-    if (layersRef.current.rain) return
-    setRainviewerLoading(true)
-    try {
-      const res = await fetch('https://api.rainviewer.com/public/maps.json')
-      const json = await res.json()
-      const ts = json.radar?.timestamps || json?.radar?.past || []
-      setTimestamps(ts)
-      const lastIndex = ts.length ? ts.length - 1 : null
-      setCurrentFrame(lastIndex)
-      if (ts.length === 0) {
-        throw new Error('RainViewer has no timestamps')
-      }
-      const last = lastIndex !== null ? ts[lastIndex] : null
-      const tileUrl = `https://tile.rainviewer.com/v2/radar/${last}/{z}/{x}/{y}/2/1_1.png`
-      const rainLayer = L.tileLayer(tileUrl, { opacity: overlayOpacity, maxZoom: 12, crossOrigin: true })
-      layersRef.current.rain = rainLayer
-      rainLayerRef.current = rainLayer
-      rainLayer.addTo(mapInstanceRef.current)
-    } catch (err) {
-      console.error('RainViewer load failed or has no data', err)
-      const tile = ensureOWMLayer('precipitation')
-      if (tile) {
-        layersRef.current.rain = tile
-        rainLayerRef.current = tile
-        tile.setOpacity(overlayOpacity)
-        tile.addTo(mapInstanceRef.current)
-      }
-    } finally {
-      setRainviewerLoading(false)
-    }
+  if (!mapInstanceRef.current) return
+  if (layersRef.current.rain) {
+    setRainviewerLoading(false)
+    return
   }
+  setRainviewerLoading(true)
+  try {
+    const res = await fetch('https://api.rainviewer.com/public/maps.json')
+    const json = await res.json()
+    const ts = json.radar?.timestamps || json?.radar?.past || []
+    setTimestamps(ts)
+    const lastIndex = ts.length ? ts.length - 1 : null
+    setCurrentFrame(lastIndex)
+    if (ts.length === 0) {
+      throw new Error('RainViewer has no timestamps')
+    }
+    const last = lastIndex !== null ? ts[lastIndex] : null
+    const tileUrl = `https://tile.rainviewer.com/v2/radar/${last}/{z}/{x}/{y}/2/1_1.png`
+    const rainLayer = L.tileLayer(tileUrl, { opacity: overlayOpacity, maxZoom: 12, crossOrigin: true })
+    layersRef.current.rain = rainLayer
+    rainLayerRef.current = rainLayer
+    rainLayer.addTo(mapInstanceRef.current)
+  } catch (err) {
+    console.error('RainViewer load failed or has no data, falling back to OpenWeatherMap', err)
+    const tile = ensureOWMLayer('precipitation')
+    if (tile) {
+      layersRef.current.rain = tile
+      rainLayerRef.current = tile
+      tile.setOpacity(overlayOpacity)
+      tile.addTo(mapInstanceRef.current)
+    }
+  } finally {
+    setRainviewerLoading(false)
+  }
+}
 
   function ensureOWMLayer(name) {
     if (!mapInstanceRef.current) return null
