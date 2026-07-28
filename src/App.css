@@ -1325,6 +1325,10 @@ body {
 
 .account-menu-wrapper {
   position: relative;
+  display: flex;
+  justify-content: flex-end;
+  width: 100%;
+  margin-right: 16px;
 }
 
 .account-trigger-btn {
