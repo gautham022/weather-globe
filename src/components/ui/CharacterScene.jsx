@@ -118,21 +118,49 @@ export default function CharacterScene({ state, exiting }) {
 
   // State-driven reactions
   useEffect(() => {
-    if (exiting) return; // don't fight the exit animation
+    if (exiting) return;
     const covers = Object.values(coverRefs).map((r) => r.current).filter(Boolean);
     const groups = Object.values(groupRefs).map((r) => r.current).filter(Boolean);
+    const pupils = pupilRefs.current;
+
+    // Eyelid covers are no longer used for hide/show — always keep them hidden.
+    gsap.to(covers, { y: -40, opacity: 0, duration: 0.2 });
 
     if (state === 'passwordHidden') {
-      gsap.to(covers, { y: 0, opacity: 1, duration: 0.35, ease: 'power2.out', stagger: 0.04 });
-      gsap.to(groups, { y: 6, duration: 0.3, ease: 'power1.out' });
+      const tl = gsap.timeline();
+      tl.to(groups, {
+        scaleX: 0.05,
+        duration: 0.18,
+        ease: 'power1.in',
+        transformOrigin: '50% 100%',
+        stagger: 0.03,
+      })
+        .set(pupils, { opacity: 0 })
+        .to(groups, {
+          scaleX: 1,
+          duration: 0.22,
+          ease: 'power1.out',
+          stagger: 0.03,
+        });
     } else if (state === 'passwordVisible') {
-      gsap.to(covers, { y: -40, opacity: 0, duration: 0.3, ease: 'back.out(2)', stagger: 0.04 });
-      gsap.to(groups, { y: -4, duration: 0.3, ease: 'back.out(2)', yoyo: true, repeat: 1 });
+      const tl = gsap.timeline();
+      tl.to(groups, {
+        scaleX: 0.05,
+        duration: 0.15,
+        ease: 'power1.in',
+        transformOrigin: '50% 100%',
+        stagger: 0.03,
+      })
+        .set(pupils, { opacity: 1 })
+        .to(groups, {
+          scaleX: 1,
+          duration: 0.25,
+          ease: 'back.out(2)',
+          stagger: 0.03,
+        });
     } else if (state === 'typingEmail') {
-      gsap.to(covers, { y: -40, opacity: 0, duration: 0.25 });
       gsap.to(groups, { y: -3, duration: 0.3, ease: 'power1.out' });
     } else if (state === 'error') {
-      gsap.to(covers, { y: -40, opacity: 0, duration: 0.2 });
       gsap.fromTo(
         groups,
         { rotate: 0 },
@@ -146,7 +174,6 @@ export default function CharacterScene({ state, exiting }) {
         }
       );
     } else if (state === 'success') {
-      gsap.to(covers, { y: -40, opacity: 0, duration: 0.2 });
       gsap.to(groups, {
         y: -50,
         scaleY: 1.15,
@@ -157,7 +184,6 @@ export default function CharacterScene({ state, exiting }) {
         repeat: 1,
       });
     } else {
-      gsap.to(covers, { y: -40, opacity: 0, duration: 0.3 });
       gsap.to(groups, { y: 0, duration: 0.3 });
     }
   }, [state, exiting]);

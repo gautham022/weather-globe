@@ -17,11 +17,9 @@ import LoginPage from './components/ui/LoginPage';
 function latLonToVector3(lat, lon, radius) {
   const phi = (90 - lat) * (Math.PI / 180)
   const theta = (lon + 180) * (Math.PI / 180)
-
   const x = -radius * Math.sin(phi) * Math.cos(theta)
   const y = radius * Math.cos(phi)
   const z = radius * Math.sin(phi) * Math.sin(theta)
-
   return new THREE.Vector3(x, y, z)
 }
 
@@ -115,46 +113,70 @@ function App() {
   const [showRadar, setShowRadar] = useState(false)
   const [showLogin, setShowLogin] = useState(false)
 
+  // --- Auth state ---
+  const [user, setUser] = useState(() => {
+    try {
+      const raw = localStorage.getItem('weatherGlobeUser');
+      return raw ? JSON.parse(raw) : null;
+    } catch {
+      return null;
+    }
+  });
+  const [showAccountMenu, setShowAccountMenu] = useState(false);
+
   const markerRef = useRef(null)
   const targetPositionRef = useRef(null)
   const labelRefs = useRef([])
   const lastCameraQuatRef = useRef(null)
 
+  function handleLoginSuccess(data) {
+    const loggedInUser = data.user || data; // support either response shape
+    setUser(loggedInUser);
+    try {
+      localStorage.setItem('weatherGlobeUser', JSON.stringify(loggedInUser));
+    } catch {
+      // ignore storage errors
+    }
+    setShowLogin(false);
+  }
+
+  function handleLogout() {
+    setUser(null);
+    setShowAccountMenu(false);
+    try {
+      localStorage.removeItem('weatherGlobeUser');
+    } catch {
+      // ignore storage errors
+    }
+  }
+
   useEffect(() => {
     const scene = new THREE.Scene()
-
     const wrapper = stageWrapperRef.current
     const getSize = () => ({
       width: wrapper.clientWidth,
       height: wrapper.clientHeight,
     })
-
     const { width: initialWidth, height: initialHeight } = getSize()
-
     const camera = new THREE.PerspectiveCamera(75, initialWidth / initialHeight, 0.1, 1000)
     camera.position.z = 3
-
     const renderer = new THREE.WebGLRenderer({ canvas: canvasRef.current, alpha: true })
     renderer.setClearColor(0x000000, 0)
     renderer.setPixelRatio(window.devicePixelRatio || 1)
     renderer.setSize(initialWidth, initialHeight)
-
     const controls = new OrbitControls(camera, renderer.domElement)
     controls.enableDamping = true
     controls.dampingFactor = 0.15
     controls.minDistance = 1.5
     controls.maxDistance = 6
     controls.enableZoom = false
-
     const textureLoader = new THREE.TextureLoader()
     const texture = textureLoader.load(earthTexture)
-
     const geometry = new THREE.SphereGeometry(1, 64, 64)
     const material = new THREE.MeshStandardMaterial({ map: texture })
     const globe = new THREE.Mesh(geometry, material)
     scene.add(globe)
 
-    // Add country borders
     fetch('https://raw.githubusercontent.com/johan/world.geo.json/master/countries.geo.json')
       .then(res => res.json())
       .then(data => {
@@ -191,7 +213,6 @@ function App() {
     const light = new THREE.DirectionalLight(0xffffff, 2)
     light.position.set(5, 3, 5)
     scene.add(light)
-
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.3)
     scene.add(ambientLight)
 
@@ -200,20 +221,16 @@ function App() {
       canvas.width = 64
       canvas.height = 64
       const ctx = canvas.getContext('2d')
-
       ctx.beginPath()
       ctx.arc(32, 32, 28, 0, Math.PI * 2)
       ctx.fillStyle = '#ffffff'
       ctx.fill()
-
       ctx.beginPath()
       ctx.arc(32, 32, 20, 0, Math.PI * 2)
       ctx.fillStyle = '#4285F4'
       ctx.fill()
-
       return new THREE.CanvasTexture(canvas)
     }
-
     const markerTexture = createMarkerTexture()
     const markerMaterial = new THREE.SpriteMaterial({
       map: markerTexture,
@@ -237,16 +254,13 @@ function App() {
     function animate() {
       requestAnimationFrame(animate)
       controls.update()
-
       if (targetPositionRef.current) {
         camera.position.lerp(targetPositionRef.current, 0.03)
         camera.lookAt(0, 0, 0)
-
         if (camera.position.distanceTo(targetPositionRef.current) < 0.01) {
           targetPositionRef.current = null
         }
       }
-
       let isMoving = false
       if (lastCameraQuatRef.current) {
         const angle = lastCameraQuatRef.current.angleTo(camera.quaternion)
@@ -255,15 +269,12 @@ function App() {
         }
       }
       lastCameraQuatRef.current = camera.quaternion.clone()
-
       const horizonDot = 1 / camera.position.length()
-
       if (marker.visible) {
         const markerDirection = marker.position.clone().normalize()
         const cameraDirection = camera.position.clone().normalize()
         const facingDot = markerDirection.dot(cameraDirection)
         const isFacingCamera = facingDot > horizonDot
-
         if (isFacingCamera) {
           const vector = marker.position.clone()
           vector.project(camera)
@@ -275,23 +286,19 @@ function App() {
           setPopupScreenPos(null)
         }
       }
-
       globeLabels.forEach((label, index) => {
         const el = labelRefs.current[index]
         if (!el) return
-
         const labelPos = latLonToVector3(label.lat, label.lon, 1.01)
         const labelDirection = labelPos.clone().normalize()
         const cameraDirectionForLabel = camera.position.clone().normalize()
         const labelFacingDot = labelDirection.dot(cameraDirectionForLabel)
-
         if (!isMoving && labelFacingDot > horizonDot) {
           const vector = labelPos.clone()
           vector.project(camera)
           const rect = canvasRef.current.getBoundingClientRect()
           const x = (vector.x * 0.5 + 0.5) * rect.width
           const y = (-vector.y * 0.5 + 0.5) * rect.height
-
           el.style.left = `${x}px`
           el.style.top = `${y}px`
           el.style.opacity = String(Math.min(1, (labelFacingDot - horizonDot) * 4))
@@ -299,7 +306,6 @@ function App() {
           el.style.opacity = '0'
         }
       })
-
       renderer.render(scene, camera)
     }
     animate()
@@ -316,7 +322,6 @@ function App() {
       setPlaceSuggestions([])
       return
     }
-
     const timeoutId = setTimeout(() => {
       fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city)}&limit=5`)
         .then((response) => response.json())
@@ -327,7 +332,6 @@ function App() {
           setPlaceSuggestions([])
         })
     }, 400)
-
     return () => clearTimeout(timeoutId)
   }, [city])
 
@@ -408,7 +412,6 @@ function App() {
     const surfacePoint = latLonToVector3(lat, lon, 1)
     markerRef.current.position.copy(surfacePoint).multiplyScalar(1.01)
     markerRef.current.visible = true
-
     const cameraDistance = 2.2
     const cameraTarget = surfacePoint.clone().normalize().multiplyScalar(cameraDistance)
     targetPositionRef.current = cameraTarget
@@ -421,7 +424,6 @@ function App() {
     setPopupVisible(false)
     setShowSuggestions(false)
     setShowRadar(false)
-
     fetch(`${API_URL}/weather/${encodeURIComponent(cityName)}`)
       .then((response) => {
         if (!response.ok) throw new Error('City not found')
@@ -463,7 +465,6 @@ function App() {
         <div className="stars-glow" />
         <div className="stars-field" />
       </div>
-
       <div className="shooting-stars-layer">
         <ShootingStars
           starColor="#9E00FF"
@@ -490,13 +491,11 @@ function App() {
           maxDelay={3500}
         />
       </div>
-
       <div className="main-layout">
         <div className="globe-stage-wrapper" ref={stageWrapperRef}>
           <div className={`globe-stage ${showRadar ? 'show-radar' : ''}`}>
             <div className="globe-layer">
               <canvas ref={canvasRef} className="globe-canvas" />
-
               <div className="globe-labels-layer">
                 {globeLabels.map((label, index) => (
                   <span
@@ -509,7 +508,6 @@ function App() {
                 ))}
               </div>
             </div>
-
             <div className="radar-layer">
               {weather && (
                 <WeatherRadarView
@@ -522,12 +520,32 @@ function App() {
             </div>
           </div>
         </div>
-
         <aside className="sidebar">
-          <button className="login-trigger-btn" onClick={() => setShowLogin(true)}>
-            Log In
-          </button>
-
+          {user ? (
+            <div className="account-menu-wrapper">
+              <button
+                className="account-trigger-btn"
+                onClick={() => setShowAccountMenu((v) => !v)}
+              >
+                <span className="account-avatar">
+                  {user.name?.[0]?.toUpperCase() || 'U'}
+                </span>
+                <span className="account-name">{user.name}</span>
+              </button>
+              {showAccountMenu && (
+                <div className="account-dropdown">
+                  <p className="account-email">{user.email}</p>
+                  <button className="account-logout-btn" onClick={handleLogout}>
+                    Log out
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <button className="login-trigger-btn" onClick={() => setShowLogin(true)}>
+              Log In
+            </button>
+          )}
           <div className="news-panel">
             <h3>World Weather News</h3>
             <div className="news-list">
@@ -559,24 +577,20 @@ function App() {
           </div>
         </aside>
       </div>
-
       <div className="secondary-layout">
         <div className="side-panels-column">
           <SidePanels weather={weather} />
         </div>
-
         {weather && (
           <div className="forecast-section">
             <h3 className="forecast-section-title">5 Days Weather — {weather.city}</h3>
             <WeatherForecastPanel cityName={weather.city} />
           </div>
         )}
-
         <div className="places-column">
           <PlacesPanel />
         </div>
       </div>
-
       <div className="search-wrapper">
         <div className="search-top-row">
           <div className="search-bar">
@@ -607,7 +621,6 @@ function App() {
               </svg>
             </button>
           </div>
-
           <button
             className={`weather-history-btn ${showRadar ? 'active' : ''}`}
             disabled={!weather}
@@ -620,7 +633,6 @@ function App() {
             WEATHER RADAR
           </button>
         </div>
-
         {showSuggestions && placeSuggestions.length > 0 && (
           <div className="suggestions-dropdown">
             {placeSuggestions.map((place) => (
@@ -640,7 +652,6 @@ function App() {
           </div>
         )}
       </div>
-
       {(loading || error) && (
         <div
           className="status-popup"
@@ -657,7 +668,6 @@ function App() {
           {error && <p className="error-text">{error}</p>}
         </div>
       )}
-
       {weather && popupScreenPos && !showRadar && (
         <div
           className={`weather-popup ${popupVisible ? 'popup-visible' : ''}`}
@@ -669,7 +679,6 @@ function App() {
           <div className="popup-datetime">
             {formatCityDateTime(weather.timezone)}
           </div>
-
           <h2>{weather.city}</h2>
           <p>{weather.temperature}°C (feels like {weather.feels_like}°C)</p>
           <p>{weather.description}</p>
@@ -677,16 +686,14 @@ function App() {
           <p>Wind: {weather.wind_speed} m/s</p>
         </div>
       )}
-
       {showLogin && (
         <div className="login-modal-overlay" onClick={() => setShowLogin(false)}>
           <div className="login-modal-content" onClick={(e) => e.stopPropagation()}>
             <button className="login-modal-close" onClick={() => setShowLogin(false)}>×</button>
-            <LoginPage onLoginSuccess={() => setShowLogin(false)} />
+            <LoginPage onLoginSuccess={handleLoginSuccess} />
           </div>
         </div>
       )}
-
       <Footer />
       <AIChatBox city={weather?.city} weather={weather} />
     </div>
