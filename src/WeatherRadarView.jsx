@@ -23,9 +23,6 @@ function WeatherRadarView({ lat, lon, active, onClose }) {
   const OWM_API_KEY = import.meta.env.VITE_OWM_API_KEY || ''
   const hasOwmKey = Boolean(OWM_API_KEY)
   const noOwmKey = !hasOwmKey
-  const owmWarning = noOwmKey
-    ? 'Missing OpenWeatherMap API key; temperature, wind, and clouds overlays are unavailable on this deployment.'
-    : ''
 
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current || lat == null || lon == null) return
@@ -291,7 +288,6 @@ function WeatherRadarView({ lat, lon, active, onClose }) {
       </div>
 
       <div ref={mapContainerRef} className="radar-card-map" />
-      {owmWarning && <div className="radar-warning">{owmWarning}</div>}
 
       <div className="radar-card-legend">
         <span className="radar-legend-item">
