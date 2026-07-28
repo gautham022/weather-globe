@@ -22,6 +22,10 @@ function WeatherRadarView({ lat, lon, active, onClose }) {
   // Read OpenWeatherMap API key from Vite env.
   const OWM_API_KEY = import.meta.env.VITE_OWM_API_KEY || ''
   const hasOwmKey = Boolean(OWM_API_KEY)
+  const noOwmKey = !hasOwmKey
+  const owmWarning = noOwmKey
+    ? 'Missing OpenWeatherMap API key; temperature, wind, and clouds overlays are unavailable on this deployment.'
+    : ''
 
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current || lat == null || lon == null) return
@@ -136,6 +140,11 @@ function WeatherRadarView({ lat, lon, active, onClose }) {
   // Switch overlay
   function setOverlay(name) {
     if (!mapInstanceRef.current) return
+
+    if (name !== 'precipitation' && noOwmKey) {
+      return
+    }
+
     // remove existing overlay layers
     ['rain', 'temperature', 'wind', 'clouds'].forEach((k) => {
       const l = layersRef.current[k]
@@ -242,16 +251,31 @@ function WeatherRadarView({ lat, lon, active, onClose }) {
         <button className={selectedOverlay === 'precipitation' ? 'active' : ''} onClick={() => setOverlay('precipitation')}>
           Precipitation
         </button>
-        <button className={selectedOverlay === 'temperature' ? 'active' : ''} onClick={() => setOverlay('temperature')}>
+        <button
+          className={selectedOverlay === 'temperature' ? 'active' : ''}
+          onClick={() => setOverlay('temperature')}
+          disabled={noOwmKey}
+          title={noOwmKey ? 'OpenWeatherMap key not configured' : 'Temperature overlay'}
+        >
           Temperature
         </button>
-        <button className={selectedOverlay === 'wind' ? 'active' : ''} onClick={() => setOverlay('wind')}>
+        <button
+          className={selectedOverlay === 'wind' ? 'active' : ''}
+          onClick={() => setOverlay('wind')}
+          disabled={noOwmKey}
+          title={noOwmKey ? 'OpenWeatherMap key not configured' : 'Wind overlay'}
+        >
           Wind
         </button>
-        <button className={selectedOverlay === 'clouds' ? 'active' : ''} onClick={() => setOverlay('clouds')}>
+        <button
+          className={selectedOverlay === 'clouds' ? 'active' : ''}
+          onClick={() => setOverlay('clouds')}
+          disabled={noOwmKey}
+          title={noOwmKey ? 'OpenWeatherMap key not configured' : 'Clouds overlay'}
+        >
           Clouds
         </button>
-          <button
+        <button
           className={`radar-fullscreen-btn ${isFullscreen ? 'active' : ''}`}
           onClick={() => {
             if (!document.fullscreenElement) {
@@ -267,6 +291,7 @@ function WeatherRadarView({ lat, lon, active, onClose }) {
       </div>
 
       <div ref={mapContainerRef} className="radar-card-map" />
+      {owmWarning && <div className="radar-warning">{owmWarning}</div>}
 
       <div className="radar-card-legend">
         <span className="radar-legend-item">
