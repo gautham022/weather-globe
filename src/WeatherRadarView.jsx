@@ -12,38 +12,30 @@ function WeatherRadarView({ lat, lon, active, onClose }) {
   const [timestamps, setTimestamps] = useState([])
   const [currentFrame, setCurrentFrame] = useState(null)
   const [isPlaying] = useState(false)
-  const [animationSpeed] = useState(700) // ms per frame
+  const [animationSpeed] = useState(700)
   const [overlayOpacity] = useState(0.85)
   const [isFullscreen, setIsFullscreen] = useState(false)
   const radarCardRef = useRef(null)
   const rainLayerRef = useRef(null)
   const playIntervalRef = useRef(null)
 
-  // Read OpenWeatherMap API key from Vite env.
   const OWM_API_KEY = import.meta.env.VITE_OWM_API_KEY || ''
-  const hasOwmKey = Boolean(OWM_API_KEY)
-  const noOwmKey = !hasOwmKey
 
   useEffect(() => {
     if (!mapContainerRef.current || mapInstanceRef.current || lat == null || lon == null) return
-
     const map = L.map(mapContainerRef.current, {
       center: [lat, lon],
       zoom: 6,
       zoomControl: true,
       attributionControl: false,
     })
-
-    // Base map (Carto Dark) for better overlay contrast
     const base = L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
       subdomains: 'abcd',
       maxZoom: 12,
     }).addTo(map)
-
     layersRef.current.base = base
     mapInstanceRef.current = map
     setMapReady(true)
-
     return () => {
       map.remove()
       mapInstanceRef.current = null
@@ -52,14 +44,12 @@ function WeatherRadarView({ lat, lon, active, onClose }) {
     }
   }, [])
 
-  // center/update view when lat/lon change
   useEffect(() => {
     if (mapInstanceRef.current && lat != null && lon != null) {
       mapInstanceRef.current.setView([lat, lon], 6)
     }
   }, [lat, lon])
 
-  // handle active toggle (invalidate size so map renders properly when shown)
   useEffect(() => {
     if (active && mapInstanceRef.current) {
       const timeoutId = setTimeout(() => {
@@ -72,7 +62,6 @@ function WeatherRadarView({ lat, lon, active, onClose }) {
     }
   }, [active, lat, lon])
 
-  // Load RainViewer latest radar timestamp and create tile layer
   async function ensureRainViewerLayer() {
     if (!mapInstanceRef.current) return
     if (layersRef.current.rain) return
@@ -84,28 +73,23 @@ function WeatherRadarView({ lat, lon, active, onClose }) {
       setTimestamps(ts)
       const lastIndex = ts.length ? ts.length - 1 : null
       setCurrentFrame(lastIndex)
-
       if (ts.length === 0) {
         throw new Error('RainViewer has no timestamps')
       }
-
       const last = lastIndex !== null ? ts[lastIndex] : null
       const tileUrl = `https://tile.rainviewer.com/v2/radar/${last}/{z}/{x}/{y}/2/1_1.png`
-
       const rainLayer = L.tileLayer(tileUrl, { opacity: overlayOpacity, maxZoom: 12, crossOrigin: true })
       layersRef.current.rain = rainLayer
       rainLayerRef.current = rainLayer
       rainLayer.addTo(mapInstanceRef.current)
     } catch (err) {
       console.error('RainViewer load failed or has no data', err)
-      if (hasOwmKey) {
-        const tile = ensureOWMLayer('precipitation')
-        if (tile) {
-          layersRef.current.rain = tile
-          rainLayerRef.current = tile
-          tile.setOpacity(overlayOpacity)
-          tile.addTo(mapInstanceRef.current)
-        }
+      const tile = ensureOWMLayer('precipitation')
+      if (tile) {
+        layersRef.current.rain = tile
+        rainLayerRef.current = tile
+        tile.setOpacity(overlayOpacity)
+        tile.addTo(mapInstanceRef.current)
       }
     } finally {
       setRainviewerLoading(false)
@@ -117,7 +101,6 @@ function WeatherRadarView({ lat, lon, active, onClose }) {
     if (!OWM_API_KEY) return null
     if (layersRef.current[name]) return layersRef.current[name]
 
-    // Map names: temp_new, wind_new, precipitation_new, clouds_new
     const layerMap = {
       temperature: 'temp_new',
       wind: 'wind_new',
@@ -134,16 +117,9 @@ function WeatherRadarView({ lat, lon, active, onClose }) {
     return tile
   }
 
-  // Switch overlay
   function setOverlay(name) {
     if (!mapInstanceRef.current) return
-
-    if (name !== 'precipitation' && noOwmKey) {
-      return
-    }
-
-    // remove existing overlay layers
-    ['rain', 'temperature', 'wind', 'clouds'].forEach((k) => {
+    ;['rain', 'temperature', 'wind', 'clouds'].forEach((k) => {
       const l = layersRef.current[k]
       if (l && mapInstanceRef.current.hasLayer(l)) mapInstanceRef.current.removeLayer(l)
     })
@@ -158,7 +134,6 @@ function WeatherRadarView({ lat, lon, active, onClose }) {
     }
   }
 
-  // update tile URL for rain layer when frame changes
   useEffect(() => {
     if (!mapInstanceRef.current) return
     if (selectedOverlay !== 'precipitation') return
@@ -172,14 +147,12 @@ function WeatherRadarView({ lat, lon, active, onClose }) {
 
     const rain = layersRef.current.rain || rainLayerRef.current
     if (rain) {
-      // Leaflet's tileLayer supports setUrl and setOpacity
       if (typeof rain.setUrl === 'function') rain.setUrl(url)
       if (typeof rain.setOpacity === 'function') rain.setOpacity(overlayOpacity)
       if (!mapInstanceRef.current.hasLayer(rain)) rain.addTo(mapInstanceRef.current)
     }
   }, [currentFrame, timestamps, selectedOverlay, overlayOpacity])
 
-  // play animation when isPlaying true
   useEffect(() => {
     if (!isPlaying) {
       if (playIntervalRef.current) {
@@ -188,7 +161,6 @@ function WeatherRadarView({ lat, lon, active, onClose }) {
       }
       return
     }
-
     if (!timestamps || timestamps.length === 0) return
     playIntervalRef.current = setInterval(() => {
       setCurrentFrame((prev) => {
@@ -196,7 +168,6 @@ function WeatherRadarView({ lat, lon, active, onClose }) {
         return (prev + 1) % timestamps.length
       })
     }, animationSpeed)
-
     return () => {
       if (playIntervalRef.current) {
         clearInterval(playIntervalRef.current)
@@ -205,7 +176,6 @@ function WeatherRadarView({ lat, lon, active, onClose }) {
     }
   }, [isPlaying, timestamps, animationSpeed])
 
-  // update overlay opacity for non-rain layers
   useEffect(() => {
     ;['temperature', 'wind', 'clouds'].forEach((k) => {
       const l = layersRef.current[k]
@@ -216,7 +186,6 @@ function WeatherRadarView({ lat, lon, active, onClose }) {
     }
   }, [overlayOpacity])
 
-// initialize default overlay once map is ready
   useEffect(() => {
     if (!mapReady) return
     setOverlay('precipitation')
@@ -235,41 +204,26 @@ function WeatherRadarView({ lat, lon, active, onClose }) {
   return (
     <div ref={radarCardRef} className="radar-card">
       <div className="radar-card-header">
-          WORLD WEATHER RADAR
-          <button
-            className="radar-close-header-btn"
-            onClick={() => typeof onClose === 'function' && onClose()}
-            aria-label="Back to globe"
-          >
-            ✕
-          </button>
-        </div>
+        WORLD WEATHER RADAR
+        <button
+          className="radar-close-header-btn"
+          onClick={() => typeof onClose === 'function' && onClose()}
+          aria-label="Back to globe"
+        >
+          ✕
+        </button>
+      </div>
       <div className="radar-overlay-controls">
         <button className={selectedOverlay === 'precipitation' ? 'active' : ''} onClick={() => setOverlay('precipitation')}>
           Precipitation
         </button>
-        <button
-          className={selectedOverlay === 'temperature' ? 'active' : ''}
-          onClick={() => setOverlay('temperature')}
-          disabled={noOwmKey}
-          title={noOwmKey ? 'OpenWeatherMap key not configured' : 'Temperature overlay'}
-        >
+        <button className={selectedOverlay === 'temperature' ? 'active' : ''} onClick={() => setOverlay('temperature')}>
           Temperature
         </button>
-        <button
-          className={selectedOverlay === 'wind' ? 'active' : ''}
-          onClick={() => setOverlay('wind')}
-          disabled={noOwmKey}
-          title={noOwmKey ? 'OpenWeatherMap key not configured' : 'Wind overlay'}
-        >
+        <button className={selectedOverlay === 'wind' ? 'active' : ''} onClick={() => setOverlay('wind')}>
           Wind
         </button>
-        <button
-          className={selectedOverlay === 'clouds' ? 'active' : ''}
-          onClick={() => setOverlay('clouds')}
-          disabled={noOwmKey}
-          title={noOwmKey ? 'OpenWeatherMap key not configured' : 'Clouds overlay'}
-        >
+        <button className={selectedOverlay === 'clouds' ? 'active' : ''} onClick={() => setOverlay('clouds')}>
           Clouds
         </button>
         <button
