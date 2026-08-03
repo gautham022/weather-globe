@@ -127,37 +127,24 @@ export default function CharacterScene({ state, exiting }) {
     gsap.to(covers, { y: -40, opacity: 0, duration: 0.2 });
 
     if (state === 'passwordHidden') {
-      const tl = gsap.timeline();
-      tl.to(groups, {
-        scaleX: 0.05,
-        duration: 0.18,
-        ease: 'power1.in',
-        transformOrigin: '50% 100%',
-        stagger: 0.03,
-      })
-        .set(pupils, { opacity: 0 })
-        .to(groups, {
-          scaleX: 1,
-          duration: 0.22,
-          ease: 'power1.out',
-          stagger: 0.03,
-        });
+      // Don't touch the body at all — just glance the eyes away from the
+      // Hide button, which sits to the right of the characters.
+      gsap.to(pupils, {
+        x: -4.5,
+        y: -1,
+        opacity: 1,
+        duration: 0.3,
+        ease: 'power2.out',
+        overwrite: 'auto',
+      });
     } else if (state === 'passwordVisible') {
-      const tl = gsap.timeline();
-      tl.to(groups, {
-        scaleX: 0.05,
-        duration: 0.15,
-        ease: 'power1.in',
-        transformOrigin: '50% 100%',
-        stagger: 0.03,
-      })
-        .set(pupils, { opacity: 1 })
-        .to(groups, {
-          scaleX: 1,
-          duration: 0.25,
-          ease: 'back.out(2)',
-          stagger: 0.03,
-        });
+      // Just make sure pupils are visible; cursor tracking (mousemove
+      // handler above) takes over positioning on the very next move.
+      gsap.to(pupils, {
+        opacity: 1,
+        duration: 0.2,
+        overwrite: 'auto',
+      });
     } else if (state === 'typingEmail') {
       gsap.to(groups, { y: -3, duration: 0.3, ease: 'power1.out' });
     } else if (state === 'error') {
